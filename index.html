@@ -15,7 +15,7 @@ h2{font-size:14px;margin:0 0 10px;color:var(--mut);text-transform:uppercase;lett
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
 .pill{padding:4px 10px;border-radius:99px;font-size:13px;background:var(--line);color:var(--mut)}
 .pill.driving{background:#1d3b5c;color:var(--ac)}
-.pill.asking{background:#4a3b12;color:var(--warn)}
+.pill.asking,.pill.voice{background:#4a3b12;color:var(--warn)}
 .pill.alarm,.pill.alerted{background:#5a1d20;color:var(--bad)}
 #big{font-size:22px;font-weight:650;margin-bottom:4px}
 .mut{color:var(--mut);font-size:14px}
@@ -24,6 +24,7 @@ button{font:inherit;color:var(--tx);background:#223044;border:1px solid var(--li
 button.ok{background:#15543a;border-color:#1f7a54}
 button.no{background:#3a3f48}
 button.on{background:#1d3b5c;border-color:var(--ac)}
+button.rec{background:#5a1d20;border-color:var(--bad)}
 label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:15px}
 input[type=text],input[type=time],select{font:inherit;background:#0f1720;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px}
 input[type=range]{flex:1}
@@ -35,6 +36,19 @@ li time{color:var(--mut);margin-right:6px}
 body.alarm{animation:flash .6s infinite alternate}
 @keyframes flash{from{background:#0f1720}to{background:#4a1316}}
 .note{font-size:13px;color:var(--mut);margin-top:8px}
+.crow{display:flex;gap:6px;align-items:center;margin:6px 0}
+.crow input{min-width:0}
+.crow .nm{flex:1 1 38%}
+.crow .ph{flex:1 1 42%}
+.crow a{flex:0 0 auto;padding:9px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ac);text-decoration:none;font-size:14px}
+.topic{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0f1720;border:1px solid var(--line);border-radius:8px;padding:8px;word-break:break-all;font-size:14px}
+#chan{list-style:none;padding:0;margin:10px 0 0;max-height:220px;overflow:auto;font-size:14px}
+#chan li{padding:6px 8px;background:#0f1720;border:1px solid var(--line);border-radius:8px;margin:4px 0}
+#chan li.alert{border-color:var(--bad)}
+#chan time{color:var(--mut);margin-right:6px;font-size:12px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#555;margin-right:6px}
+.dot.live{background:var(--ok)}
+.pill.watching{background:#14402f;color:var(--ok)}
 </style>
 </head>
 <body>
@@ -62,6 +76,67 @@ body.alarm{animation:flash .6s infinite alternate}
   </section>
 
   <section class="card">
+    <h2>Sounds</h2>
+    <label>Child's name <input type="text" id="child" placeholder="e.g. Maya" style="width:55%"></label>
+    <label>Chime melody
+      <select id="mel"><option value="lullaby">Lullaby</option><option value="musicbox">Music box</option><option value="simple">Simple</option></select>
+    </label>
+    <div class="row">
+      <button id="tChime">Test chime</button>
+      <button id="tVoice">Test voice</button>
+      <button id="tAlarm">Test urgent alarm</button>
+    </div>
+    <div class="row">
+      <button id="bRec">Record my voice message</button>
+      <button id="bRecDel">Remove my voice</button>
+    </div>
+    <div class="row">
+      <button id="bChimeUp">Use my own chime (audio file)</button>
+      <button id="bChimeDel">Remove my chime</button>
+    </div>
+    <input type="file" id="chimeFile" accept="audio/*" hidden>
+    <div class="note" id="sndNote"></div>
+    <div class="note">Stages: 1) soft chime when it asks. 2) After 60 s, a spoken reminder with the child's name, or your own voice. 3) After 2 min, an urgent alarm. 4) After 3 min, a message to your contact. Heat (25°C+) makes everything twice as fast.</div>
+  </section>
+
+  <section class="card">
+    <h2>Child tag (optional)</h2>
+    <label>Use a Bluetooth tag on the child <input type="checkbox" id="tagOn"></label>
+    <div class="mut">If the tag stays in the car while your phone walks away, the alarm starts fast. Off by default.</div>
+    <div class="note"><span id="tagState"></span> <span id="tagBat"></span></div>
+    <div class="row">
+      <button id="bTagIn">Simulate: tag in range</button>
+      <button id="bTagOut">Simulate: tag lost</button>
+    </div>
+    <div class="row"><button id="bTagPair">Pair a real tag (experimental)</button></div>
+    <div class="note">How it works: the tag has no on/off switch to forget. If it was in range during your drive, the app stays quiet when you park and watches for 10 minutes. If the tag is lost for 20 seconds in that time (you walked away without the child), it goes straight to the spoken reminder, the urgent alarm after 20 seconds, and the family alert after 1 minute. If you carry the child with you, the tag stays near and nothing happens. Without a tag, the app uses the routine question as before. To test: turn it on, tap "tag in range", "Start driving", "Driving → walking", then "tag lost". Real pairing works only in Chrome on Android, with this page open. Background scanning needs the native app.</div>
+  </section>
+
+  <section class="card">
+    <h2>Family circle (4 contacts)</h2>
+    <div id="contacts"></div>
+    <label style="margin-top:10px">Group alert channel <input type="checkbox" id="chanOn"></label>
+    <div class="mut">Secret channel name. Everyone who joins gets the alert on their phone, with the car's location, and can reply.</div>
+    <div class="topic" id="topic"></div>
+    <div class="row">
+      <button id="bInvite">Invite contacts</button>
+      <button id="bNewTopic">New secret name</button>
+    </div>
+    <div class="row">
+      <button id="bTestFam">Send test to everyone</button>
+      <button id="bTextAll">Text everyone now</button>
+    </div>
+    <div class="note"><span class="dot" id="dot"></span><span id="chanState">Channel off</span></div>
+    <div class="row">
+      <button id="bOnway">I'm on my way</button>
+      <button id="bGot">I have the child</button>
+    </div>
+    <label style="margin-top:10px"><input type="text" id="msg" placeholder="Message to the circle" style="flex:1"><button id="bSend" style="flex:0 0 auto;min-height:38px;padding:8px 12px">Send</button></label>
+    <ul id="chan"></ul>
+    <div class="note">How it works: each contact installs the free ntfy app (Android or iPhone), taps +, and subscribes to the secret name above. When the alert fires, all four phones ring together (urgent priority) with a map link to the car. Anyone with the secret name can read the channel, so share it only with these four people. "Text everyone now" opens your messages app with all four numbers filled in, since a web page can't send texts by itself.</div>
+  </section>
+
+  <section class="card">
     <h2>Live GPS mode</h2>
     <div class="row"><button id="bGps">Turn on GPS detection</button></div>
     <div class="note">Speed now: <span id="gpsv">–</span>. Works only while this page stays open. A real build would use the phone's activity recognition ("in vehicle" → "walking") in the background.</div>
@@ -74,8 +149,8 @@ body.alarm{animation:flash .6s infinite alternate}
     <div class="days" id="days"></div>
     <label>From <input type="time" id="from"> To <input type="time" id="to"></label>
     <label>Temperature <input type="range" id="temp" min="5" max="40"><span id="tempv"></span></label>
-    <label>Second contact <input type="text" id="contact" style="width:55%"></label>
-    <div class="note">Hot (25°C+) makes escalation twice as fast. Here the temperature is manual; a real build would read it from a weather service. The app also learns: after two "kids aboard" answers in the same weekday and hour, it starts asking by itself.</div>
+    <label>Your name <input type="text" id="me" placeholder="e.g. Dad" style="width:55%"></label>
+    <div class="note">Here the temperature is manual; a real build would read it from a weather service. The app also learns: after two "kids aboard" answers in the same weekday and hour, it starts asking by itself.</div>
   </section>
 
   <section class="card"><h2>Log</h2><ol id="log" reversed></ol></section>
@@ -83,11 +158,13 @@ body.alarm{animation:flash .6s infinite alternate}
 
 <script>
 const $ = id => document.getElementById(id);
-const S = {contact:'Spouse', manual:true, temp:20, days:[1,2,3,4,5], from:'07:00', to:'09:30', speed:1, learn:{}};
+const S = {me:'', contacts:[], topic:'', chan:true, tag:false, child:'', mel:'lullaby', manual:true, temp:20, days:[1,2,3,4,5], from:'07:00', to:'09:30', speed:1, learn:{}};
 try { Object.assign(S, JSON.parse(localStorage.getItem('bsc') || '{}')); } catch (e) {}
 function save(){ try { localStorage.setItem('bsc', JSON.stringify(S)); } catch (e) {} }
+function store(k, v){ try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+function fetchStore(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
 
-let st = 'idle', t1, t2, d1 = 0, d2 = 0, ctx, beepTimer, last = null;
+let st = 'idle', t1, t2, t3, d1 = 0, d2 = 0, d3 = 0, ctx, alarmTimer, voiceTimer, vaud = null, caud = null, last = null;
 
 function log(msg){
   const li = document.createElement('li');
@@ -116,59 +193,137 @@ function learn(yes){
   save();
 }
 
+// ---------- sounds ----------
 function unlock(){
   try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) {}
 }
 document.addEventListener('click', unlock);
-function beepStart(){
-  clearInterval(beepTimer);
-  beepTimer = setInterval(() => {
-    try {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = 880; g.gain.value = .2;
-      o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .25);
-    } catch (e) {}
-    try { navigator.vibrate && navigator.vibrate([300, 150, 300]); } catch (e) {}
-  }, 700);
-}
-function beepStop(){ clearInterval(beepTimer); try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} }
 
+function tone(f, t0, dur, type, vol){
+  if (!ctx) return;
+  try {
+    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + t0;
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + .03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + dur + .05);
+  } catch (e) {}
+}
+const MEL = {
+  lullaby:  {n:[659, 784, 880, 784, 659], step:.38, dur:.9, type:'sine', vol:.13},
+  musicbox: {n:[1047, 1319, 1568, 1319, 1047], step:.22, dur:.5, type:'triangle', vol:.12},
+  simple:   {n:[660, 880], step:.32, dur:.7, type:'sine', vol:.14}
+};
+function playChime(){
+  unlock();
+  const custom = fetchStore('bsc_chime');
+  if (custom){
+    try { if (caud) caud.pause(); caud = new Audio(custom); caud.play().catch(() => log('Sound blocked by the browser')); } catch (e) {}
+    return;
+  }
+  const m = MEL[S.mel] || MEL.lullaby;
+  m.n.forEach((f, i) => tone(f, i * m.step, m.dur, m.type, m.vol));
+}
+function speak(force){
+  const rec = fetchStore('bsc_voice');
+  if (rec){
+    if (!force && vaud && !vaud.paused && !vaud.ended) return;
+    try { if (vaud) vaud.pause(); vaud = new Audio(rec); vaud.play().catch(() => log('Sound blocked by the browser')); } catch (e) {}
+    return;
+  }
+  try {
+    if (!force && window.speechSynthesis.speaking) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance('Is ' + (S.child || 'your child') + ' in the back seat? Please check now.');
+    u.rate = .9;
+    window.speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function alarmStart(){
+  clearInterval(alarmTimer);
+  unlock();
+  const go = () => {
+    tone(880, 0, .22, 'square', .18);
+    tone(660, .26, .22, 'square', .18);
+    try { navigator.vibrate && navigator.vibrate([250, 120, 250]); } catch (e) {}
+  };
+  go();
+  alarmTimer = setInterval(go, 900);
+}
+function stopAll(){
+  clearInterval(alarmTimer); clearInterval(voiceTimer);
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+  try { if (vaud) vaud.pause(); if (caud) caud.pause(); } catch (e) {}
+  try { navigator.vibrate && navigator.vibrate(0); } catch (e) {}
+}
+
+// ---------- state machine ----------
 function signalDrive(src){
-  if (st !== 'idle') return;
+  if (st !== 'idle' && st !== 'watching') return;
+  clearTimeout(tw); clearTimeout(lostTimer);
   st = 'driving';
-  log('Driving detected (' + src + ')');
+  tagAboard = S.tag && tagPresent;
+  log('Driving detected (' + src + ')' + (tagAboard ? ', child tag is with you' : ''));
   render();
 }
 function signalParked(src){
   if (st !== 'driving'){ log(src + ' ignored: no drive before it, stayed silent'); return; }
+  if (S.tag && tagAboard){
+    st = 'watching';
+    dw = Date.now() + 600000 / S.speed;
+    tw = setTimeout(() => { if (st === 'watching'){ st = 'idle'; log('10 minutes passed and the tag stayed with you. Stopped watching.'); render(); } }, 600000 / S.speed);
+    log('Parked (' + src + '). Tag was with you: watching quietly for 10 minutes');
+    render();
+    return;
+  }
   const why = likely();
   if (!why){ st = 'idle'; log('Parked (' + src + '). No child expected, stayed silent'); render(); return; }
   log('Parked (' + src + '). Child likely: ' + why);
   ask();
 }
-function ask(){
+function ask(fast){
   st = 'asking';
-  const f = (S.temp >= 25 ? .5 : 1) / S.speed;
-  d1 = Date.now() + 60000 * f; d2 = Date.now() + 180000 * f;
-  t1 = setTimeout(alarm, 60000 * f);
-  t2 = setTimeout(alertContact, 180000 * f);
-  try { navigator.vibrate && navigator.vibrate(200); } catch (e) {}
+  const f = (S.temp >= 25 ? .5 : 1) / S.speed, now = Date.now();
+  const T = fast ? [0, 20000, 60000] : [60000, 120000, 180000];
+  d1 = now + T[0] * f; d3 = now + T[1] * f; d2 = now + T[2] * f;
+  t1 = setTimeout(stageVoice, T[0] * f);
+  t3 = setTimeout(stageAlarm, T[1] * f);
+  t2 = setTimeout(alertContact, T[2] * f);
+  if (!fast) playChime();
+  grabLocation();
+  try { navigator.vibrate && navigator.vibrate(150); } catch (e) {}
   if (S.temp >= 25) log('Hot (' + S.temp + '°C): escalating twice as fast');
+  log(fast ? 'Child tag left behind: fast escalation' : 'Stage 1: soft chime');
   render();
 }
-function alarm(){
-  st = 'alarm'; log('No answer: loud alarm'); beepStart(); render();
+function stageVoice(){
+  st = 'voice';
+  log('No answer. Stage 2: spoken reminder');
+  speak(true);
+  const gap = Math.max(5000, 14000 * (S.temp >= 25 ? .5 : 1) / S.speed);
+  clearInterval(voiceTimer);
+  voiceTimer = setInterval(() => speak(false), gap);
+  render();
+}
+function stageAlarm(){
+  st = 'alarm';
+  log('Still no answer. Stage 3: urgent alarm');
+  alarmStart();
+  render();
 }
 function alertContact(){
   st = 'alerted';
-  const where = last ? last.latitude.toFixed(4) + ', ' + last.longitude.toFixed(4) : 'last parked location';
-  log('Message to ' + S.contact + ': "Possible child left in the car at ' + where + '. Temp ' + S.temp + '°C. Please check now."');
-  beepStart(); render();
+  log('Stage 4: alerting the family circle');
+  sendAlert();
+  alarmStart();
+  render();
 }
 function resolve(kidsAboard){
-  clearTimeout(t1); clearTimeout(t2); beepStop();
+  clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(tw); clearTimeout(lostTimer); stopAll();
   learn(kidsAboard);
   log(kidsAboard ? 'Answered: kids were aboard, all out' : 'Answered: no kids this trip');
+  if (alertSent) sendAllClear();
   st = 'idle'; render();
 }
 
@@ -178,29 +333,91 @@ function render(){
   const A = $('actions'); A.innerHTML = '';
   const add = (txt, cls, fn) => { const b = document.createElement('button'); b.textContent = txt; b.className = cls; b.onclick = fn; A.appendChild(b); };
   const big = $('big'), sub = $('sub');
+  const who = S.child || 'your child';
   if (st === 'idle'){ pill.textContent = 'Idle'; big.textContent = 'Waiting for a trip'; sub.textContent = ''; }
   if (st === 'driving'){ pill.textContent = 'Driving'; big.textContent = 'Trip in progress'; sub.textContent = 'Quiet until you park.'; }
-  if (st === 'asking' || st === 'alarm' || st === 'alerted'){
-    pill.textContent = st === 'asking' ? 'Asking' : st === 'alarm' ? 'Alarm' : 'Contact alerted';
+  if (st === 'watching'){
+    pill.textContent = 'Watching'; big.textContent = 'Child tag is with you';
+    sub.textContent = 'Quiet. The alarm starts if the tag is left behind.';
+    add('Child is with me: stop watching', 'ok', () => { clearTimeout(tw); clearTimeout(lostTimer); st = 'idle'; log('Stopped watching the tag'); render(); });
+  }
+  if (['asking', 'voice', 'alarm', 'alerted'].includes(st)){
+    pill.textContent = {asking:'Asking', voice:'Reminder', alarm:'Alarm', alerted:'Contact alerted'}[st];
     big.textContent = 'Anyone in the back?';
-    sub.textContent = st === 'asking' ? 'One tap to dismiss.' : st === 'alarm' ? 'Please check the back seat now.' : S.contact + ' has been alerted.';
+    sub.textContent = st === 'asking' ? 'One tap to dismiss.'
+      : st === 'voice' ? 'Is ' + who + ' in the back seat?'
+      : st === 'alarm' ? 'Please check the back seat now.'
+      : 'Your family circle has been alerted.';
     add('Kids aboard: all out now', 'ok', () => resolve(true));
     add('No kids this trip', 'no', () => resolve(false));
+    if (st === 'alerted') add('Text everyone now', 'no', textAll);
   }
 }
 setInterval(() => {
   const s = ms => Math.max(0, Math.ceil(ms / 1000)) + 's';
   const now = Date.now();
-  $('cd').textContent = st === 'asking' ? 'Alarm in ' + s(d1 - now) + ' · contact alerted in ' + s(d2 - now)
+  $('cd').textContent =
+    st === 'watching' ? 'Watching the tag for ' + s(dw - now) :
+    st === 'asking' ? 'Voice in ' + s(d1 - now) + ' · alarm in ' + s(d3 - now) + ' · contact in ' + s(d2 - now)
+    : st === 'voice' ? 'Alarm in ' + s(d3 - now) + ' · contact in ' + s(d2 - now)
     : st === 'alarm' ? 'Contact alerted in ' + s(d2 - now) : '';
 }, 250);
 
-// simulated signals
+// ---------- simulated signals ----------
 $('bDrive').onclick = () => signalDrive('simulated');
 $('bPark').onclick = () => signalParked('driving → walking');
 $('bUnplug').onclick = () => signalParked('charger unplugged');
 
-// live GPS (page must stay open)
+// ---------- sound settings ----------
+function updSound(){
+  const v = fetchStore('bsc_voice'), c = fetchStore('bsc_chime');
+  $('sndNote').textContent = 'Reminder voice: ' + (v ? 'your recording' : 'computer voice saying the name')
+    + '. Chime: ' + (c ? 'your own file' : MEL[S.mel] ? $('mel').selectedOptions[0].textContent : 'Lullaby') + '.';
+}
+$('child').value = S.child; $('child').oninput = e => { S.child = e.target.value; save(); render(); };
+$('mel').value = S.mel; $('mel').onchange = e => { S.mel = e.target.value; save(); updSound(); playChime(); };
+$('tChime').onclick = () => playChime();
+$('tVoice').onclick = () => { unlock(); speak(true); };
+$('tAlarm').onclick = () => { alarmStart(); setTimeout(stopAll, 2500); };
+
+let rec = null, recChunks = [], recTimer;
+$('bRec').onclick = async () => {
+  if (rec && rec.state === 'recording'){ rec.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    rec = new MediaRecorder(stream); recChunks = [];
+    rec.ondataavailable = e => recChunks.push(e.data);
+    rec.onstop = () => {
+      clearTimeout(recTimer);
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(recChunks, {type: rec.mimeType || 'audio/webm'});
+      const fr = new FileReader();
+      fr.onload = () => {
+        if (store('bsc_voice', fr.result)) log('Your voice message was saved');
+        else log('Recording too large to save, try a shorter one');
+        updSound();
+      };
+      fr.readAsDataURL(blob);
+      $('bRec').textContent = 'Record my voice message'; $('bRec').classList.remove('rec');
+    };
+    rec.start();
+    $('bRec').textContent = 'Stop recording (max 8 s)'; $('bRec').classList.add('rec');
+    recTimer = setTimeout(() => { if (rec && rec.state === 'recording') rec.stop(); }, 8000);
+  } catch (e) { log('Microphone not available: ' + e.message); }
+};
+$('bRecDel').onclick = () => { store('bsc_voice', null); log('Your voice message was removed'); updSound(); };
+$('bChimeUp').onclick = () => $('chimeFile').click();
+$('chimeFile').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.size > 1500000){ log('That file is too big (max about 1.5 MB). Use a short clip.'); return; }
+  const fr = new FileReader();
+  fr.onload = () => { if (store('bsc_chime', fr.result)) log('Your own chime was saved'); else log('Could not save that file'); updSound(); };
+  fr.readAsDataURL(f);
+  e.target.value = '';
+};
+$('bChimeDel').onclick = () => { store('bsc_chime', null); log('Your own chime was removed'); updSound(); };
+
+// ---------- live GPS (page must stay open) ----------
 let wid = null, fast = 0, slowSince = 0;
 $('bGps').onclick = () => {
   if (wid !== null){ navigator.geolocation.clearWatch(wid); wid = null; $('bGps').textContent = 'Turn on GPS detection'; $('bGps').classList.remove('on'); return; }
@@ -218,7 +435,7 @@ $('bGps').onclick = () => {
   log('GPS detection on');
 };
 
-// settings
+// ---------- settings ----------
 ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach((n, i) => {
   const l = document.createElement('label');
   l.innerHTML = '<input type="checkbox"> ' + n;
@@ -231,10 +448,208 @@ $('from').value = S.from; $('from').onchange = e => { S.from = e.target.value; s
 $('to').value = S.to; $('to').onchange = e => { S.to = e.target.value; save(); };
 $('temp').value = S.temp; $('tempv').textContent = S.temp + '°C';
 $('temp').oninput = e => { S.temp = +e.target.value; $('tempv').textContent = S.temp + '°C'; save(); };
-$('contact').value = S.contact; $('contact').oninput = e => { S.contact = e.target.value; save(); };
+$('me').value = S.me; $('me').oninput = e => { S.me = e.target.value; save(); };
+
+// ---------- family circle ----------
+let es = null, alertSent = false;
+
+function normContacts(){
+  if (!Array.isArray(S.contacts)) S.contacts = [];
+  while (S.contacts.length < 4) S.contacts.push({n:'', p:''});
+  S.contacts = S.contacts.slice(0, 4).map(c => ({n: (c && c.n) || '', p: (c && c.p) || ''}));
+}
+function newTopic(){
+  let s = '';
+  try { const a = new Uint8Array(12); crypto.getRandomValues(a); s = Array.from(a, b => b.toString(36).padStart(2, '0')).join(''); }
+  catch (e) { for (let i = 0; i < 24; i++) s += Math.floor(Math.random() * 36).toString(36); }
+  return 'bsc-' + s.slice(0, 16);
+}
+function mapUrl(){ return last ? 'https://maps.google.com/?q=' + last.latitude + ',' + last.longitude : null; }
+function grabLocation(){
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    p => { last = p.coords; log('Car location saved'); },
+    e => log('Could not get the car location: ' + e.message),
+    {enableHighAccuracy:true, timeout:15000, maximumAge:60000});
+}
+function alertText(){
+  const url = mapUrl();
+  return 'Possible child' + (S.child ? ' (' + S.child + ')' : '') + ' left in the car. '
+    + (S.me ? S.me + ' has not answered. ' : '')
+    + 'Temp ' + S.temp + '°C. '
+    + (url ? 'Car location: ' + url : 'Car location unknown, please call ' + (S.me || 'the driver') + '.')
+    + ' Please check now.';
+}
+async function publish(o){
+  if (!S.chan || !S.topic) return false;
+  try {
+    const r = await fetch('https://ntfy.sh/', {method:'POST', body: JSON.stringify(Object.assign({topic: S.topic}, o))});
+    return r.ok;
+  } catch (e) { return false; }
+}
+async function sendAlert(){
+  const url = mapUrl();
+  const o = {title:'Child may be in the car', message: alertText(), priority:5, tags:['rotating_light']};
+  if (url){ o.click = url; o.actions = [{action:'view', label:'Open map', url: url}]; }
+  const ok = await publish(o);
+  alertSent = ok;
+  log(ok ? 'Alert sent to the family circle' : 'Could not reach the family channel. Tap "Text everyone now".');
+}
+async function sendAllClear(){
+  alertSent = false;
+  const ok = await publish({title:'All clear', message: (S.me || 'The driver') + ' confirmed the child is safe.', priority:3, tags:['white_check_mark']});
+  log(ok ? 'All-clear sent to the family circle' : 'Could not send the all-clear');
+}
+function smsHref(text){
+  const nums = S.contacts.map(c => (c.p || '').replace(/[^\d+]/g, '')).filter(Boolean);
+  return 'sms:' + nums.join(',') + '?body=' + encodeURIComponent(text);
+}
+function textAll(){
+  if (!S.contacts.some(c => c.p)){ log('Add at least one phone number first'); return; }
+  location.href = smsHref(alertText());
+}
+function addChan(m){
+  const li = document.createElement('li');
+  if ((m.title || '').toLowerCase().includes('child may be')) li.className = 'alert';
+  const t = new Date((m.time || Date.now() / 1000) * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const tm = document.createElement('time'); tm.textContent = t;
+  li.appendChild(tm);
+  li.appendChild(document.createTextNode((m.title ? m.title + ': ' : '') + (m.message || '')));
+  $('chan').prepend(li);
+  while ($('chan').children.length > 30) $('chan').lastChild.remove();
+}
+function subscribe(){
+  if (es){ es.close(); es = null; }
+  $('dot').classList.remove('live');
+  if (!S.chan || !S.topic){ $('chanState').textContent = 'Channel off'; return; }
+  $('chanState').textContent = 'Connecting...';
+  try {
+    es = new EventSource('https://ntfy.sh/' + S.topic + '/sse?since=2h');
+    es.onopen = () => { $('dot').classList.add('live'); $('chanState').textContent = 'Channel connected'; };
+    es.onerror = () => { $('dot').classList.remove('live'); $('chanState').textContent = 'Reconnecting...'; };
+    es.onmessage = ev => {
+      try {
+        const m = JSON.parse(ev.data);
+        if (m.event && m.event !== 'message') return;
+        addChan(m);
+        if (m.title && m.title.indexOf('Reply') === 0) log('From the circle: ' + m.message);
+      } catch (e) {}
+    };
+  } catch (e) { $('chanState').textContent = 'Channel unavailable'; }
+}
+function renderContacts(){
+  const box = $('contacts'); box.innerHTML = '';
+  S.contacts.forEach((c, i) => {
+    const r = document.createElement('div'); r.className = 'crow';
+    const n = document.createElement('input'); n.type = 'text'; n.className = 'nm'; n.placeholder = 'Name ' + (i + 1); n.value = c.n;
+    n.oninput = () => { c.n = n.value; save(); };
+    const p = document.createElement('input'); p.type = 'text'; p.className = 'ph'; p.placeholder = 'Phone'; p.inputMode = 'tel'; p.value = c.p;
+    const a = document.createElement('a'); a.textContent = 'Call'; a.href = c.p ? 'tel:' + c.p.replace(/[^\d+]/g, '') : '#';
+    p.oninput = () => { c.p = p.value; a.href = c.p ? 'tel:' + c.p.replace(/[^\d+]/g, '') : '#'; save(); };
+    r.append(n, p, a); box.appendChild(r);
+  });
+}
+function inviteText(){
+  return 'I am adding you to my family safety circle (' + (S.child ? 'for ' + S.child + ' ' : '') + 'car safety alerts). '
+    + '1) Install the free ntfy app. 2) Tap + and subscribe to this topic: ' + S.topic + ' (keep the default server, ntfy.sh). '
+    + 'You will get an urgent alert with the car location if my child may be left in the car, and you can reply there. '
+    + 'You can also open https://ntfy.sh/' + S.topic + ' in a browser.';
+}
+async function circleSend(title, message, tags){
+  const ok = await publish({title: title, message: message, priority: 4, tags: tags || []});
+  if (!ok) log('Could not reach the family channel');
+  return ok;
+}
+function initCircle(){
+  normContacts();
+  if (!S.topic){ S.topic = newTopic(); }
+  save();
+  renderContacts();
+  $('topic').textContent = S.topic;
+  $('chanOn').checked = S.chan;
+  $('chanOn').onchange = e => { S.chan = e.target.checked; save(); subscribe(); };
+  $('bNewTopic').onclick = () => {
+    if (!confirm('A new secret name means your contacts must subscribe again. Continue?')) return;
+    S.topic = newTopic(); save(); $('topic').textContent = S.topic; $('chan').innerHTML = ''; subscribe(); log('New secret channel name created');
+  };
+  $('bInvite').onclick = async () => {
+    const txt = inviteText();
+    try { if (navigator.share){ await navigator.share({title:'Family safety circle', text: txt}); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(txt); log('Invitation copied. Paste it into a message to your contacts.'); }
+    catch (e) { prompt('Copy this invitation:', txt); }
+  };
+  $('bTestFam').onclick = async () => {
+    grabLocation();
+    const ok = await circleSend('Test', 'This is only a test from ' + (S.me || 'the driver') + '. No action needed.', ['test_tube']);
+    log(ok ? 'Test sent. Contacts who joined should see it now.' : 'Test failed');
+  };
+  $('bTextAll').onclick = textAll;
+  $('bOnway').onclick = () => circleSend('Reply', (S.me || 'Someone') + ': I\'m on my way to the car.', ['runner']);
+  $('bGot').onclick = () => circleSend('Reply', (S.me || 'Someone') + ': I have the child. All safe.', ['white_check_mark']);
+  $('bSend').onclick = () => { const v = $('msg').value.trim(); if (!v) return; circleSend('Reply', (S.me ? S.me + ': ' : '') + v); $('msg').value = ''; };
+  subscribe();
+}
 $('speed').value = S.speed; $('speed').onchange = e => { S.speed = +e.target.value; save(); };
 
+// ---------- child tag (optional) ----------
+let tw, lostTimer, rcTimer, tagDev = null, tagPresent = false, tagAboard = false, dw = 0;
+
+function updTag(){
+  $('tagState').textContent = !S.tag ? 'Tag feature off' : (tagPresent ? 'Tag: in range' : 'Tag: not seen');
+}
+function tagAlarm(){
+  if (st !== 'watching') return;
+  clearTimeout(tw);
+  log('Tag lost for 20 seconds right after parking: child may be left in the car');
+  ask(true);
+}
+function setTag(v){
+  if (v === tagPresent) return;
+  tagPresent = v; updTag();
+  if (!S.tag) return;
+  log(v ? 'Child tag in range' : 'Child tag out of range');
+  if (v){ clearTimeout(lostTimer); if (st === 'driving') tagAboard = true; }
+  else if (st === 'watching'){ clearTimeout(lostTimer); lostTimer = setTimeout(tagAlarm, 20000 / S.speed); }
+}
+async function connectTag(){
+  if (!tagDev) return;
+  try {
+    const srv = await tagDev.gatt.connect();
+    setTag(true);
+    try {
+      const sv = await srv.getPrimaryService('battery_service');
+      const ch = await sv.getCharacteristic('battery_level');
+      const v = await ch.readValue();
+      $('tagBat').textContent = 'battery ' + v.getUint8(0) + '%';
+    } catch (e) {}
+  } catch (e) { setTag(false); }
+}
+function tryReconnect(){
+  clearTimeout(rcTimer);
+  rcTimer = setTimeout(async () => { if (tagDev && !tagPresent){ await connectTag(); if (!tagPresent) tryReconnect(); } }, 3000);
+}
+async function pairTag(){
+  if (!navigator.bluetooth){ log('Bluetooth pairing is not supported in this browser. Use Chrome on Android, or the simulator buttons.'); return; }
+  try {
+    tagDev = await navigator.bluetooth.requestDevice({acceptAllDevices:true, optionalServices:['battery_service']});
+    tagDev.addEventListener('gattserverdisconnected', () => { setTag(false); tryReconnect(); });
+    log('Tag selected: ' + (tagDev.name || 'unnamed device'));
+    await connectTag();
+  } catch (e) { log('Tag pairing: ' + e.message); }
+}
+function initTag(){
+  $('tagOn').checked = S.tag;
+  $('tagOn').onchange = e => { S.tag = e.target.checked; save(); updTag(); log(S.tag ? 'Child tag feature on' : 'Child tag feature off'); };
+  $('bTagIn').onclick = () => setTag(true);
+  $('bTagOut').onclick = () => setTag(false);
+  $('bTagPair').onclick = pairTag;
+  updTag();
+}
+
+updSound();
 render();
+initCircle();
+initTag();
 </script>
 </body>
 </html>
