@@ -76,6 +76,16 @@ body.alarm{animation:flash .6s infinite alternate}
   </section>
 
   <section class="card">
+    <h2>How it starts</h2>
+    <label>Mode
+      <select id="mode"><option value="auto">Automatic: asks when driving starts</option><option value="manual">Manual: I switch it on myself</option></select>
+    </label>
+    <label>Ask at the start of every drive <input type="checkbox" id="askAlways"></label>
+    <label>Tell my circle about exceptional drives <input type="checkbox" id="exTell"></label>
+    <div class="note">Automatic: when driving starts you get a chime and two taps. 1) Is a child in the car? "Yes" means the app checks when you park, "No" keeps it quiet, and no answer counts as unknown, so it still checks when you park. 2) Is this drive routine or exceptional (a different driver, time or place than usual)? Exceptional turns on extra care: it always checks when you park, escalates twice as fast, and isn't used to teach the app your routine. Turning "every drive" off asks only at your usual times, which is quieter but gives less protection on unusual days. Manual: the app doesn't ask at the start. Use the "Child is in the car" switch in Settings.</div>
+  </section>
+
+  <section class="card">
     <h2>Sounds</h2>
     <label>Child's name <input type="text" id="child" placeholder="e.g. Maya" style="width:55%"></label>
     <label>Chime melody
@@ -144,7 +154,7 @@ body.alarm{animation:flash .6s infinite alternate}
 
   <section class="card">
     <h2>Settings</h2>
-    <label>Kids in the car right now <input type="checkbox" id="manual"></label>
+    <label>Child is in the car (manual switch) <input type="checkbox" id="manual"></label>
     <div class="mut">Usual school-run days and time</div>
     <div class="days" id="days"></div>
     <label>From <input type="time" id="from"> To <input type="time" id="to"></label>
@@ -158,7 +168,7 @@ body.alarm{animation:flash .6s infinite alternate}
 
 <script>
 const $ = id => document.getElementById(id);
-const S = {me:'', contacts:[], topic:'', chan:true, tag:false, child:'', mel:'lullaby', manual:true, temp:20, days:[1,2,3,4,5], from:'07:00', to:'09:30', speed:1, learn:{}};
+const S = {me:'', contacts:[], topic:'', chan:true, tag:false, mode:'auto', askAlways:true, exTell:false, child:'', mel:'lullaby', manual:true, temp:20, days:[1,2,3,4,5], from:'07:00', to:'09:30', speed:1, learn:{}};
 try { Object.assign(S, JSON.parse(localStorage.getItem('bsc') || '{}')); } catch (e) {}
 function save(){ try { localStorage.setItem('bsc', JSON.stringify(S)); } catch (e) {} }
 function store(k, v){ try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); return true; } catch (e) { return false; } }
@@ -181,6 +191,10 @@ function inSchedule(d){
 }
 function likely(){
   const d = new Date(), L = S.learn[d.getDay() + '-' + d.getHours()] || {y:0, n:0};
+  if (tripKids === 'yes') return 'you said a child is aboard';
+  if (tripKids === 'no') return null;
+  if (S.mode === 'auto' && startAsked) return 'no answer at the start of the trip';
+  if (tripExc) return 'exceptional drive';
   if (S.manual) return 'kids toggle is on';
   if (inSchedule(d)) return 'usual school-run time';
   if (L.y >= 2 && L.y > L.n) return 'learned routine';
@@ -265,11 +279,12 @@ function signalDrive(src){
   st = 'driving';
   tagAboard = S.tag && tagPresent;
   log('Driving detected (' + src + ')' + (tagAboard ? ', child tag is with you' : ''));
+  startPrompt();
   render();
 }
 function signalParked(src){
   if (st !== 'driving'){ log(src + ' ignored: no drive before it, stayed silent'); return; }
-  if (S.tag && tagAboard){
+  if (S.tag && tagAboard && tripKids !== 'yes'){
     st = 'watching';
     dw = Date.now() + 600000 / S.speed;
     tw = setTimeout(() => { if (st === 'watching'){ st = 'idle'; log('10 minutes passed and the tag stayed with you. Stopped watching.'); render(); } }, 600000 / S.speed);
@@ -284,7 +299,7 @@ function signalParked(src){
 }
 function ask(fast){
   st = 'asking';
-  const f = (S.temp >= 25 ? .5 : 1) / S.speed, now = Date.now();
+  const f = ((S.temp >= 25 ? .5 : 1) * (tripExc ? .5 : 1)) / S.speed, now = Date.now();
   const T = fast ? [0, 20000, 60000] : [60000, 120000, 180000];
   d1 = now + T[0] * f; d3 = now + T[1] * f; d2 = now + T[2] * f;
   t1 = setTimeout(stageVoice, T[0] * f);
@@ -294,6 +309,7 @@ function ask(fast){
   grabLocation();
   try { navigator.vibrate && navigator.vibrate(150); } catch (e) {}
   if (S.temp >= 25) log('Hot (' + S.temp + '°C): escalating twice as fast');
+  if (tripExc) log('Exceptional drive: escalating twice as fast');
   log(fast ? 'Child tag left behind: fast escalation' : 'Stage 1: soft chime');
   render();
 }
@@ -320,8 +336,8 @@ function alertContact(){
   render();
 }
 function resolve(kidsAboard){
-  clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(tw); clearTimeout(lostTimer); stopAll();
-  learn(kidsAboard);
+  clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(tw); clearTimeout(lostTimer); clearTimeout(startTimer); stopAll();
+  if (!tripExc) learn(kidsAboard);
   log(kidsAboard ? 'Answered: kids were aboard, all out' : 'Answered: no kids this trip');
   if (alertSent) sendAllClear();
   st = 'idle'; render();
@@ -335,7 +351,19 @@ function render(){
   const big = $('big'), sub = $('sub');
   const who = S.child || 'your child';
   if (st === 'idle'){ pill.textContent = 'Idle'; big.textContent = 'Waiting for a trip'; sub.textContent = ''; }
-  if (st === 'driving'){ pill.textContent = 'Driving'; big.textContent = 'Trip in progress'; sub.textContent = 'Quiet until you park.'; }
+  if (st === 'driving'){
+    pill.textContent = 'Driving';
+    big.textContent = (S.mode === 'auto' && startAsked && tripKids === null) ? 'Child in the car?' : 'Trip in progress';
+    sub.textContent = tripKids === 'yes' ? 'Child aboard. I will check when you park.'
+      : tripKids === 'no' ? 'No child. Quiet until you park.' : 'Quiet until you park.';
+    if (tripExc) sub.textContent += ' Exceptional drive: extra care is on.';
+    if (S.mode === 'auto' && startAsked){
+      add('Yes, child aboard', tripKids === 'yes' ? 'ok' : '', () => setTripKids('yes'));
+      add('No child', tripKids === 'no' ? 'on' : '', () => setTripKids('no'));
+      add('Routine drive', !tripExc ? 'on' : '', () => setTripExc(false));
+      add('Exceptional drive', tripExc ? 'rec' : '', () => setTripExc(true));
+    }
+  }
   if (st === 'watching'){
     pill.textContent = 'Watching'; big.textContent = 'Child tag is with you';
     sub.textContent = 'Quiet. The alarm starts if the tag is left behind.';
@@ -591,6 +619,51 @@ function initCircle(){
 }
 $('speed').value = S.speed; $('speed').onchange = e => { S.speed = +e.target.value; save(); };
 
+// ---------- start-of-drive questions ----------
+let tripKids = null, tripExc = false, startAsked = false, startTimer;
+
+function speakText(text){
+  try { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = .9; window.speechSynthesis.speak(u); } catch (e) {}
+}
+function startShouldAsk(){
+  if (S.mode !== 'auto') return false;
+  if (S.askAlways) return true;
+  const d = new Date(), L = S.learn[d.getDay() + '-' + d.getHours()] || {y:0, n:0};
+  return inSchedule(d) || (L.y >= 2 && L.y > L.n);
+}
+function startPrompt(){
+  tripKids = null; tripExc = false; startAsked = false; clearTimeout(startTimer);
+  if (!startShouldAsk()) return;
+  startAsked = true;
+  playChime();
+  log('Asked at the start: child in the car? routine or exceptional?');
+  startTimer = setTimeout(() => {
+    if (st === 'driving' && tripKids === null){
+      speakText('Is ' + (S.child || 'your child') + ' in the car? Please tell the app.');
+      log('No answer yet. I will check again when you park.');
+    }
+  }, 45000 / S.speed);
+}
+function setTripKids(v){
+  tripKids = v; clearTimeout(startTimer);
+  log(v === 'yes' ? 'Answered: child aboard' : 'Answered: no child on this trip');
+  render();
+}
+function setTripExc(v){
+  tripExc = v;
+  log(v ? 'Marked as an exceptional drive: extra care is on' : 'Marked as a routine drive');
+  if (v && S.exTell){
+    publish({title:'Heads up', message:'Exceptional drive today' + (S.me ? ' (' + S.me + ' is driving)' : '') + (S.child ? ' with ' + S.child : '') + '. Extra checks are on.', priority:3, tags:['information_source']})
+      .then(ok => { if (!ok) log('Could not reach the family channel'); });
+  }
+  render();
+}
+function initTrip(){
+  $('mode').value = S.mode; $('mode').onchange = e => { S.mode = e.target.value; save(); render(); };
+  $('askAlways').checked = S.askAlways; $('askAlways').onchange = e => { S.askAlways = e.target.checked; save(); };
+  $('exTell').checked = S.exTell; $('exTell').onchange = e => { S.exTell = e.target.checked; save(); };
+}
+
 // ---------- child tag (optional) ----------
 let tw, lostTimer, rcTimer, tagDev = null, tagPresent = false, tagAboard = false, dw = 0;
 
@@ -650,6 +723,7 @@ updSound();
 render();
 initCircle();
 initTag();
+initTrip();
 </script>
 </body>
 </html>
