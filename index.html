@@ -2,728 +2,1167 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Back Seat Check</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Niddah Calculator · מחשבון נדה</title>
 <style>
-:root{--bg:#0f1720;--card:#18222e;--tx:#e8eef5;--mut:#8ea0b3;--ok:#3ecf8e;--warn:#f5b73b;--bad:#ff5a5f;--ac:#5aa9ff;--line:#263445}
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--mute:#6b7280;--line:#e5e1d8;--accent:#2f5d8a;--accent-ink:#fff;--warn-bg:#fff4e0;--warn-ink:#7a4a00;--ok:#2e7d4f;--tag:#e8eef6}
+@media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1d2128;--ink:#e8e9ec;--mute:#9aa1ad;--line:#2c323c;--accent:#6aa3da;--accent-ink:#0d1620;--warn-bg:#3a2d14;--warn-ink:#f1c27a;--ok:#6fcf97;--tag:#24303f}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:560px;margin:0 auto;padding:16px}
-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-h1{font-size:20px;margin:0}
-h2{font-size:14px;margin:0 0 10px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-.pill{padding:4px 10px;border-radius:99px;font-size:13px;background:var(--line);color:var(--mut)}
-.pill.driving{background:#1d3b5c;color:var(--ac)}
-.pill.asking,.pill.voice{background:#4a3b12;color:var(--warn)}
-.pill.alarm,.pill.alerted{background:#5a1d20;color:var(--bad)}
-#big{font-size:22px;font-weight:650;margin-bottom:4px}
-.mut{color:var(--mut);font-size:14px}
-.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-button{font:inherit;color:var(--tx);background:#223044;border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-height:46px;cursor:pointer;flex:1 1 140px}
-button.ok{background:#15543a;border-color:#1f7a54}
-button.no{background:#3a3f48}
-button.on{background:#1d3b5c;border-color:var(--ac)}
-button.rec{background:#5a1d20;border-color:var(--bad)}
-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:15px}
-input[type=text],input[type=time],select{font:inherit;background:#0f1720;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px}
-input[type=range]{flex:1}
-.days{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
-.days label{margin:0;gap:4px;font-size:13px;background:#0f1720;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
-ol{margin:0;padding-left:20px;max-height:260px;overflow:auto;font-size:14px}
-li{margin:4px 0}
-li time{color:var(--mut);margin-right:6px}
-body.alarm{animation:flash .6s infinite alternate}
-@keyframes flash{from{background:#0f1720}to{background:#4a1316}}
-.note{font-size:13px;color:var(--mut);margin-top:8px}
-.crow{display:flex;gap:6px;align-items:center;margin:6px 0}
-.crow input{min-width:0}
-.crow .nm{flex:1 1 38%}
-.crow .ph{flex:1 1 42%}
-.crow a{flex:0 0 auto;padding:9px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ac);text-decoration:none;font-size:14px}
-.topic{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0f1720;border:1px solid var(--line);border-radius:8px;padding:8px;word-break:break-all;font-size:14px}
-#chan{list-style:none;padding:0;margin:10px 0 0;max-height:220px;overflow:auto;font-size:14px}
-#chan li{padding:6px 8px;background:#0f1720;border:1px solid var(--line);border-radius:8px;margin:4px 0}
-#chan li.alert{border-color:var(--bad)}
-#chan time{color:var(--mut);margin-right:6px;font-size:12px}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#555;margin-right:6px}
-.dot.live{background:var(--ok)}
-.pill.watching{background:#14402f;color:var(--ok)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+h1{font-size:1.4rem;margin:0}
+h2{font-size:1.05rem;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+.disc{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:.9rem;margin:8px 0}
+label{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 3px}
+input,select,button{font:inherit}
+input[type=date],input[type=time],input[type=number],input[type=text],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.seg label{min-width:150px}
+.res{display:block;width:100%;text-align:start;margin:6px 0}
+.times{font-size:.9rem}
+.q{background:var(--tag);color:var(--accent);border:0;border-radius:999px;min-width:26px;height:26px;padding:0 6px;font-size:.85rem;margin-inline-start:4px;vertical-align:middle}
+.gl{background:var(--tag);border-radius:10px;padding:10px 12px;margin:6px 0;font-size:.92rem}
+.gl>div{margin:4px 0 8px}
+.gl-item{padding:9px 0;border-bottom:1px solid var(--line)}
+.gl-item:last-child{border-bottom:0}
+.gl-item>div{font-size:.92rem;margin-top:2px}
+.seg label{flex:1;margin:0;display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);font-size:1rem}
+button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;background:var(--accent);color:var(--accent-ink);font-weight:600}
+button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+button.small{padding:5px 9px;font-size:.85rem}
+button.danger{background:transparent;color:#c0392b;border:1px solid var(--line)}
+.timeline{list-style:none;padding:0;margin:0}
+.timeline li{padding:9px 0;border-bottom:1px solid var(--line)}
+.timeline li:last-child{border-bottom:0}
+.k{font-size:.82rem;color:var(--mute)}
+.v{font-weight:600}
+.sub{font-size:.9rem;color:var(--mute)}
+.warn{background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:.9rem}
+.tag{display:inline-block;background:var(--tag);color:var(--accent);border-radius:999px;padding:1px 9px;font-size:.78rem;margin-inline-start:6px}
+.hist{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.hist.sel{font-weight:700}
+.hist:last-child{border-bottom:0}
+details summary{cursor:pointer;font-weight:600}
+.lang button{padding:6px 10px}
+.foot{font-size:.8rem;color:var(--mute);text-align:center;margin:18px 0}
+:root{--cal-clean:#dff1e5}
+@media (prefers-color-scheme:dark){:root{--cal-clean:#1f3a2a}}
+.calh{display:flex;align-items:center;gap:8px;margin-top:6px}
+.calh .t{flex:1;text-align:center;font-weight:700}
+.calh button{padding:6px 12px}
+.calg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+.calw{font-size:.75rem;color:var(--mute);text-align:center;padding:2px 0}
+button.cald{min-height:56px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:3px 4px;background:var(--card);color:var(--ink);font:inherit;font-size:.85rem;text-align:start;display:flex;flex-direction:column;gap:1px;cursor:pointer}
+button.cald .h{font-size:.65rem;color:var(--mute)}
+div.cald.blank{min-height:0}
+button.cald.sh{background:var(--tag)}
+button.cald.clean{background:var(--cal-clean)}
+button.cald.today{outline:2px solid var(--accent)}
+button.cald.sel{box-shadow:inset 0 0 0 2px var(--ink)}
+.dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:auto}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.period{background:#c0392b}.dot.hefsek{background:#2f6fb0}.dot.mikvah{background:#8e44ad}.dot.onah{background:#e67e22}.dot.clean{background:#3d9a5f}
+.cal-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:.78rem;color:var(--mute)}
+.cal-det{margin-top:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:.9rem}
+#report{display:none}
+@media print{
+ body{background:#fff!important;color:#000!important}
+ body>*:not(#report){display:none!important}
+ #report{display:block;font:11.5pt/1.45 "Noto Sans Hebrew",Arial,sans-serif;color:#000}
+ #report h1{font-size:20pt;margin:0 0 2pt}
+ #report .rsub{color:#444;margin-bottom:8pt}
+ #report h2{font-size:13pt;margin:14pt 0 4pt;border-bottom:1px solid #888;padding-bottom:2pt}
+ #report table{border-collapse:collapse;width:100%;margin:4pt 0;page-break-inside:auto}
+ #report tr{page-break-inside:avoid}
+ #report th,#report td{border:1px solid #bbb;padding:4pt 6pt;text-align:start;vertical-align:top}
+ #report .rkv th{width:36%;background:#f0f0f0}
+ #report thead th{background:#f0f0f0}
+ #report p{margin:4pt 0}
+ #report .warn{background:none;color:#000;border:1px solid #888;border-radius:4px}
+ #report .note{font-size:9.5pt;color:#444}
+ @page{margin:16mm}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header><h1>Back Seat Check</h1><span id="pill" class="pill">Idle</span></header>
-
-  <section class="card">
-    <div id="big">Waiting for a trip</div>
-    <div id="sub" class="mut"></div>
-    <div id="cd" class="mut"></div>
-    <div id="actions" class="row"></div>
-  </section>
-
-  <section class="card">
-    <h2>Simulate phone signals</h2>
-    <div class="row">
-      <button id="bDrive">Start driving</button>
-      <button id="bPark">Driving → walking</button>
-      <button id="bUnplug">Unplug charger</button>
-    </div>
-    <label style="margin-top:12px">Demo speed
-      <select id="speed"><option value="1">Real time</option><option value="10">×10</option><option value="30">×30</option></select>
-    </label>
-    <div class="note">Try "Unplug charger" while idle: it is ignored, because no drive came before it.</div>
-  </section>
-
-  <section class="card">
-    <h2>How it starts</h2>
-    <label>Mode
-      <select id="mode"><option value="auto">Automatic: asks when driving starts</option><option value="manual">Manual: I switch it on myself</option></select>
-    </label>
-    <label>Ask at the start of every drive <input type="checkbox" id="askAlways"></label>
-    <label>Tell my circle about exceptional drives <input type="checkbox" id="exTell"></label>
-    <div class="note">Automatic: when driving starts you get a chime and two taps. 1) Is a child in the car? "Yes" means the app checks when you park, "No" keeps it quiet, and no answer counts as unknown, so it still checks when you park. 2) Is this drive routine or exceptional (a different driver, time or place than usual)? Exceptional turns on extra care: it always checks when you park, escalates twice as fast, and isn't used to teach the app your routine. Turning "every drive" off asks only at your usual times, which is quieter but gives less protection on unusual days. Manual: the app doesn't ask at the start. Use the "Child is in the car" switch in Settings.</div>
-  </section>
-
-  <section class="card">
-    <h2>Sounds</h2>
-    <label>Child's name <input type="text" id="child" placeholder="e.g. Maya" style="width:55%"></label>
-    <label>Chime melody
-      <select id="mel"><option value="lullaby">Lullaby</option><option value="musicbox">Music box</option><option value="simple">Simple</option></select>
-    </label>
-    <div class="row">
-      <button id="tChime">Test chime</button>
-      <button id="tVoice">Test voice</button>
-      <button id="tAlarm">Test urgent alarm</button>
-    </div>
-    <div class="row">
-      <button id="bRec">Record my voice message</button>
-      <button id="bRecDel">Remove my voice</button>
-    </div>
-    <div class="row">
-      <button id="bChimeUp">Use my own chime (audio file)</button>
-      <button id="bChimeDel">Remove my chime</button>
-    </div>
-    <input type="file" id="chimeFile" accept="audio/*" hidden>
-    <div class="note" id="sndNote"></div>
-    <div class="note">Stages: 1) soft chime when it asks. 2) After 60 s, a spoken reminder with the child's name, or your own voice. 3) After 2 min, an urgent alarm. 4) After 3 min, a message to your contact. Heat (25°C+) makes everything twice as fast.</div>
-  </section>
-
-  <section class="card">
-    <h2>Child tag (optional)</h2>
-    <label>Use a Bluetooth tag on the child <input type="checkbox" id="tagOn"></label>
-    <div class="mut">If the tag stays in the car while your phone walks away, the alarm starts fast. Off by default.</div>
-    <div class="note"><span id="tagState"></span> <span id="tagBat"></span></div>
-    <div class="row">
-      <button id="bTagIn">Simulate: tag in range</button>
-      <button id="bTagOut">Simulate: tag lost</button>
-    </div>
-    <div class="row"><button id="bTagPair">Pair a real tag (experimental)</button></div>
-    <div class="note">How it works: the tag has no on/off switch to forget. If it was in range during your drive, the app stays quiet when you park and watches for 10 minutes. If the tag is lost for 20 seconds in that time (you walked away without the child), it goes straight to the spoken reminder, the urgent alarm after 20 seconds, and the family alert after 1 minute. If you carry the child with you, the tag stays near and nothing happens. Without a tag, the app uses the routine question as before. To test: turn it on, tap "tag in range", "Start driving", "Driving → walking", then "tag lost". Real pairing works only in Chrome on Android, with this page open. Background scanning needs the native app.</div>
-  </section>
-
-  <section class="card">
-    <h2>Family circle (4 contacts)</h2>
-    <div id="contacts"></div>
-    <label style="margin-top:10px">Group alert channel <input type="checkbox" id="chanOn"></label>
-    <div class="mut">Secret channel name. Everyone who joins gets the alert on their phone, with the car's location, and can reply.</div>
-    <div class="topic" id="topic"></div>
-    <div class="row">
-      <button id="bInvite">Invite contacts</button>
-      <button id="bNewTopic">New secret name</button>
-    </div>
-    <div class="row">
-      <button id="bTestFam">Send test to everyone</button>
-      <button id="bTextAll">Text everyone now</button>
-    </div>
-    <div class="note"><span class="dot" id="dot"></span><span id="chanState">Channel off</span></div>
-    <div class="row">
-      <button id="bOnway">I'm on my way</button>
-      <button id="bGot">I have the child</button>
-    </div>
-    <label style="margin-top:10px"><input type="text" id="msg" placeholder="Message to the circle" style="flex:1"><button id="bSend" style="flex:0 0 auto;min-height:38px;padding:8px 12px">Send</button></label>
-    <ul id="chan"></ul>
-    <div class="note">How it works: each contact installs the free ntfy app (Android or iPhone), taps +, and subscribes to the secret name above. When the alert fires, all four phones ring together (urgent priority) with a map link to the car. Anyone with the secret name can read the channel, so share it only with these four people. "Text everyone now" opens your messages app with all four numbers filled in, since a web page can't send texts by itself.</div>
-  </section>
-
-  <section class="card">
-    <h2>Live GPS mode</h2>
-    <div class="row"><button id="bGps">Turn on GPS detection</button></div>
-    <div class="note">Speed now: <span id="gpsv">–</span>. Works only while this page stays open. A real build would use the phone's activity recognition ("in vehicle" → "walking") in the background.</div>
-  </section>
-
-  <section class="card">
-    <h2>Settings</h2>
-    <label>Child is in the car (manual switch) <input type="checkbox" id="manual"></label>
-    <div class="mut">Usual school-run days and time</div>
-    <div class="days" id="days"></div>
-    <label>From <input type="time" id="from"> To <input type="time" id="to"></label>
-    <label>Temperature <input type="range" id="temp" min="5" max="40"><span id="tempv"></span></label>
-    <label>Your name <input type="text" id="me" placeholder="e.g. Dad" style="width:55%"></label>
-    <div class="note">Here the temperature is manual; a real build would read it from a weather service. The app also learns: after two "kids aboard" answers in the same weekday and hour, it starts asking by itself.</div>
-  </section>
-
-  <section class="card"><h2>Log</h2><ol id="log" reversed></ol></section>
-</div>
-
+<div class="wrap" id="app"></div>
+<div id="report"></div>
 <script>
-const $ = id => document.getElementById(id);
-const S = {me:'', contacts:[], topic:'', chan:true, tag:false, mode:'auto', askAlways:true, exTell:false, child:'', mel:'lullaby', manual:true, temp:20, days:[1,2,3,4,5], from:'07:00', to:'09:30', speed:1, learn:{}};
-try { Object.assign(S, JSON.parse(localStorage.getItem('bsc') || '{}')); } catch (e) {}
-function save(){ try { localStorage.setItem('bsc', JSON.stringify(S)); } catch (e) {} }
-function store(k, v){ try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); return true; } catch (e) { return false; } }
-function fetchStore(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
+/* Niddah calculation logic. Pure functions, no DOM. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.NiddahLogic = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  const DAY = 86400000;
 
-let st = 'idle', t1, t2, t3, d1 = 0, d2 = 0, d3 = 0, ctx, alarmTimer, voiceTimer, vaud = null, caud = null, last = null;
-
-function log(msg){
-  const li = document.createElement('li');
-  const t = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-  li.innerHTML = '<time>' + t + '</time>';
-  li.appendChild(document.createTextNode(msg));
-  $('log').prepend(li);
-}
-
-function inSchedule(d){
-  if (!S.days.includes(d.getDay())) return false;
-  const hm = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-  return hm >= S.from && hm <= S.to;
-}
-function likely(){
-  const d = new Date(), L = S.learn[d.getDay() + '-' + d.getHours()] || {y:0, n:0};
-  if (tripKids === 'yes') return 'you said a child is aboard';
-  if (tripKids === 'no') return null;
-  if (S.mode === 'auto' && startAsked) return 'no answer at the start of the trip';
-  if (tripExc) return 'exceptional drive';
-  if (S.manual) return 'kids toggle is on';
-  if (inSchedule(d)) return 'usual school-run time';
-  if (L.y >= 2 && L.y > L.n) return 'learned routine';
-  return null;
-}
-function learn(yes){
-  const d = new Date(), k = d.getDay() + '-' + d.getHours();
-  const L = S.learn[k] || (S.learn[k] = {y:0, n:0});
-  yes ? L.y++ : L.n++;
-  save();
-}
-
-// ---------- sounds ----------
-function unlock(){
-  try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) {}
-}
-document.addEventListener('click', unlock);
-
-function tone(f, t0, dur, type, vol){
-  if (!ctx) return;
-  try {
-    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + t0;
-    o.type = type; o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + .03);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + dur + .05);
-  } catch (e) {}
-}
-const MEL = {
-  lullaby:  {n:[659, 784, 880, 784, 659], step:.38, dur:.9, type:'sine', vol:.13},
-  musicbox: {n:[1047, 1319, 1568, 1319, 1047], step:.22, dur:.5, type:'triangle', vol:.12},
-  simple:   {n:[660, 880], step:.32, dur:.7, type:'sine', vol:.14}
-};
-function playChime(){
-  unlock();
-  const custom = fetchStore('bsc_chime');
-  if (custom){
-    try { if (caud) caud.pause(); caud = new Audio(custom); caud.play().catch(() => log('Sound blocked by the browser')); } catch (e) {}
-    return;
+  // ---------- date helpers (UTC noon, so no DST problems) ----------
+  function parseISO(s) {
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d, 12));
   }
-  const m = MEL[S.mel] || MEL.lullaby;
-  m.n.forEach((f, i) => tone(f, i * m.step, m.dur, m.type, m.vol));
-}
-function speak(force){
-  const rec = fetchStore('bsc_voice');
-  if (rec){
-    if (!force && vaud && !vaud.paused && !vaud.ended) return;
-    try { if (vaud) vaud.pause(); vaud = new Audio(rec); vaud.play().catch(() => log('Sound blocked by the browser')); } catch (e) {}
-    return;
-  }
-  try {
-    if (!force && window.speechSynthesis.speaking) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance('Is ' + (S.child || 'your child') + ' in the back seat? Please check now.');
-    u.rate = .9;
-    window.speechSynthesis.speak(u);
-  } catch (e) {}
-}
-function alarmStart(){
-  clearInterval(alarmTimer);
-  unlock();
-  const go = () => {
-    tone(880, 0, .22, 'square', .18);
-    tone(660, .26, .22, 'square', .18);
-    try { navigator.vibrate && navigator.vibrate([250, 120, 250]); } catch (e) {}
-  };
-  go();
-  alarmTimer = setInterval(go, 900);
-}
-function stopAll(){
-  clearInterval(alarmTimer); clearInterval(voiceTimer);
-  try { window.speechSynthesis.cancel(); } catch (e) {}
-  try { if (vaud) vaud.pause(); if (caud) caud.pause(); } catch (e) {}
-  try { navigator.vibrate && navigator.vibrate(0); } catch (e) {}
-}
+  function toISO(dt) { return dt.toISOString().slice(0, 10); }
+  function addDays(dt, n) { return new Date(dt.getTime() + n * DAY); }
+  function diffDays(a, b) { return Math.round((a.getTime() - b.getTime()) / DAY); }
 
-// ---------- state machine ----------
-function signalDrive(src){
-  if (st !== 'idle' && st !== 'watching') return;
-  clearTimeout(tw); clearTimeout(lostTimer);
-  st = 'driving';
-  tagAboard = S.tag && tagPresent;
-  log('Driving detected (' + src + ')' + (tagAboard ? ', child tag is with you' : ''));
-  startPrompt();
-  render();
-}
-function signalParked(src){
-  if (st !== 'driving'){ log(src + ' ignored: no drive before it, stayed silent'); return; }
-  if (S.tag && tagAboard && tripKids !== 'yes'){
-    st = 'watching';
-    dw = Date.now() + 600000 / S.speed;
-    tw = setTimeout(() => { if (st === 'watching'){ st = 'idle'; log('10 minutes passed and the tag stayed with you. Stopped watching.'); render(); } }, 600000 / S.speed);
-    log('Parked (' + src + '). Tag was with you: watching quietly for 10 minutes');
-    render();
-    return;
+  // ---------- Hebrew calendar via Intl ----------
+  const hebEn = new Intl.DateTimeFormat('en-u-ca-hebrew-nu-latn',
+    { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  function hebParts(dt) {
+    const p = {};
+    hebEn.formatToParts(dt).forEach(x => { p[x.type] = x.value; });
+    return { day: parseInt(p.day, 10), month: p.month, year: p.relatedYear || p.year };
   }
-  const why = likely();
-  if (!why){ st = 'idle'; log('Parked (' + src + '). No child expected, stayed silent'); render(); return; }
-  log('Parked (' + src + '). Child likely: ' + why);
-  ask();
-}
-function ask(fast){
-  st = 'asking';
-  const f = ((S.temp >= 25 ? .5 : 1) * (tripExc ? .5 : 1)) / S.speed, now = Date.now();
-  const T = fast ? [0, 20000, 60000] : [60000, 120000, 180000];
-  d1 = now + T[0] * f; d3 = now + T[1] * f; d2 = now + T[2] * f;
-  t1 = setTimeout(stageVoice, T[0] * f);
-  t3 = setTimeout(stageAlarm, T[1] * f);
-  t2 = setTimeout(alertContact, T[2] * f);
-  if (!fast) playChime();
-  grabLocation();
-  try { navigator.vibrate && navigator.vibrate(150); } catch (e) {}
-  if (S.temp >= 25) log('Hot (' + S.temp + '°C): escalating twice as fast');
-  if (tripExc) log('Exceptional drive: escalating twice as fast');
-  log(fast ? 'Child tag left behind: fast escalation' : 'Stage 1: soft chime');
-  render();
-}
-function stageVoice(){
-  st = 'voice';
-  log('No answer. Stage 2: spoken reminder');
-  speak(true);
-  const gap = Math.max(5000, 14000 * (S.temp >= 25 ? .5 : 1) / S.speed);
-  clearInterval(voiceTimer);
-  voiceTimer = setInterval(() => speak(false), gap);
-  render();
-}
-function stageAlarm(){
-  st = 'alarm';
-  log('Still no answer. Stage 3: urgent alarm');
-  alarmStart();
-  render();
-}
-function alertContact(){
-  st = 'alerted';
-  log('Stage 4: alerting the family circle');
-  sendAlert();
-  alarmStart();
-  render();
-}
-function resolve(kidsAboard){
-  clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(tw); clearTimeout(lostTimer); clearTimeout(startTimer); stopAll();
-  if (!tripExc) learn(kidsAboard);
-  log(kidsAboard ? 'Answered: kids were aboard, all out' : 'Answered: no kids this trip');
-  if (alertSent) sendAllClear();
-  st = 'idle'; render();
-}
+  function hebFormat(dt, lang) {
+    const loc = lang === 'he' ? 'he-u-ca-hebrew' : 'en-u-ca-hebrew-nu-latn';
+    return new Intl.DateTimeFormat(loc,
+      { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(dt);
+  }
+  function civilFormat(dt, lang) {
+    return new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : 'en-GB',
+      { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(dt);
+  }
+  function weekday(dt) { return dt.getUTCDay(); } // 0 = Sunday ... 5 = Friday, 6 = Shabbat
 
-function render(){
-  document.body.classList.toggle('alarm', st === 'alarm' || st === 'alerted');
-  const pill = $('pill'); pill.className = 'pill ' + st;
-  const A = $('actions'); A.innerHTML = '';
-  const add = (txt, cls, fn) => { const b = document.createElement('button'); b.textContent = txt; b.className = cls; b.onclick = fn; A.appendChild(b); };
-  const big = $('big'), sub = $('sub');
-  const who = S.child || 'your child';
-  if (st === 'idle'){ pill.textContent = 'Idle'; big.textContent = 'Waiting for a trip'; sub.textContent = ''; }
-  if (st === 'driving'){
-    pill.textContent = 'Driving';
-    big.textContent = (S.mode === 'auto' && startAsked && tripKids === null) ? 'Child in the car?' : 'Trip in progress';
-    sub.textContent = tripKids === 'yes' ? 'Child aboard. I will check when you park.'
-      : tripKids === 'no' ? 'No child. Quiet until you park.' : 'Quiet until you park.';
-    if (tripExc) sub.textContent += ' Exceptional drive: extra care is on.';
-    if (S.mode === 'auto' && startAsked){
-      add('Yes, child aboard', tripKids === 'yes' ? 'ok' : '', () => setTripKids('yes'));
-      add('No child', tripKids === 'no' ? 'on' : '', () => setTripKids('no'));
-      add('Routine drive', !tripExc ? 'on' : '', () => setTripExc(false));
-      add('Exceptional drive', tripExc ? 'rec' : '', () => setTripExc(true));
+  // ---------- period model ----------
+  // period = { onsetISO, night: bool, bein?: bool, hefsekISO?: string, hefsekAfterSunset?: bool }
+  // Halachic day begins at sunset: an onset seen at night belongs to the next civil date.
+  // bein = seen from sunset up to BEIN_MIN minutes after it (bein hashmashos). The reference
+  // sefer (ch.5 s.3) counts that day as day 1, so it keeps the same civil date; a stringent
+  // view (Rav Wosner) does not, and purityPlan reports that alternative.
+  const BEIN_MIN = 18;
+  function halachicDate(p) {
+    const d = parseISO(p.onsetISO);
+    return p.night ? addDays(d, 1) : d;
+  }
+  function onah(p) { return p.night ? 'night' : 'day'; }
+
+  // The minimum-days setting is a number (day 1 = day of onset). Legacy strings still work.
+  function minDaysOf(m) {
+    if (typeof m === 'number') return m;
+    return m === 'seph' ? 4 : 5;
+  }
+
+  // Is the night that begins on the evening of civil date D a night when tevilah is not allowed?
+  // Yom Kippur (10 Tishrei) and the Tisha B'Av fast (9 Av, or 10 Av when 9 Av is Shabbat).
+  function fastNight(eveningDate) {
+    const n = addDays(eveningDate, 1);
+    const hp = hebParts(n);
+    if (hp.month === 'Tishri' && hp.day === 10) return 'yomKippur';
+    if (hp.month === 'Av') {
+      const wd = weekday(n);
+      if (hp.day === 9 && wd !== 6) return 'tishaBav';
+      if (hp.day === 10 && wd === 0) return 'tishaBav';
     }
+    return null;
   }
-  if (st === 'watching'){
-    pill.textContent = 'Watching'; big.textContent = 'Child tag is with you';
-    sub.textContent = 'Quiet. The alarm starts if the tag is left behind.';
-    add('Child is with me: stop watching', 'ok', () => { clearTimeout(tw); clearTimeout(lostTimer); st = 'idle'; log('Stopped watching the tag'); render(); });
-  }
-  if (['asking', 'voice', 'alarm', 'alerted'].includes(st)){
-    pill.textContent = {asking:'Asking', voice:'Reminder', alarm:'Alarm', alerted:'Contact alerted'}[st];
-    big.textContent = 'Anyone in the back?';
-    sub.textContent = st === 'asking' ? 'One tap to dismiss.'
-      : st === 'voice' ? 'Is ' + who + ' in the back seat?'
-      : st === 'alarm' ? 'Please check the back seat now.'
-      : 'Your family circle has been alerted.';
-    add('Kids aboard: all out now', 'ok', () => resolve(true));
-    add('No kids this trip', 'no', () => resolve(false));
-    if (st === 'alerted') add('Text everyone now', 'no', textAll);
-  }
-}
-setInterval(() => {
-  const s = ms => Math.max(0, Math.ceil(ms / 1000)) + 's';
-  const now = Date.now();
-  $('cd').textContent =
-    st === 'watching' ? 'Watching the tag for ' + s(dw - now) :
-    st === 'asking' ? 'Voice in ' + s(d1 - now) + ' · alarm in ' + s(d3 - now) + ' · contact in ' + s(d2 - now)
-    : st === 'voice' ? 'Alarm in ' + s(d3 - now) + ' · contact in ' + s(d2 - now)
-    : st === 'alarm' ? 'Contact alerted in ' + s(d2 - now) : '';
-}, 250);
 
-// ---------- simulated signals ----------
-$('bDrive').onclick = () => signalDrive('simulated');
-$('bPark').onclick = () => signalParked('driving → walking');
-$('bUnplug').onclick = () => signalParked('charger unplugged');
-
-// ---------- sound settings ----------
-function updSound(){
-  const v = fetchStore('bsc_voice'), c = fetchStore('bsc_chime');
-  $('sndNote').textContent = 'Reminder voice: ' + (v ? 'your recording' : 'computer voice saying the name')
-    + '. Chime: ' + (c ? 'your own file' : MEL[S.mel] ? $('mel').selectedOptions[0].textContent : 'Lullaby') + '.';
-}
-$('child').value = S.child; $('child').oninput = e => { S.child = e.target.value; save(); render(); };
-$('mel').value = S.mel; $('mel').onchange = e => { S.mel = e.target.value; save(); updSound(); playChime(); };
-$('tChime').onclick = () => playChime();
-$('tVoice').onclick = () => { unlock(); speak(true); };
-$('tAlarm').onclick = () => { alarmStart(); setTimeout(stopAll, 2500); };
-
-let rec = null, recChunks = [], recTimer;
-$('bRec').onclick = async () => {
-  if (rec && rec.state === 'recording'){ rec.stop(); return; }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    rec = new MediaRecorder(stream); recChunks = [];
-    rec.ondataavailable = e => recChunks.push(e.data);
-    rec.onstop = () => {
-      clearTimeout(recTimer);
-      stream.getTracks().forEach(t => t.stop());
-      const blob = new Blob(recChunks, {type: rec.mimeType || 'audio/webm'});
-      const fr = new FileReader();
-      fr.onload = () => {
-        if (store('bsc_voice', fr.result)) log('Your voice message was saved');
-        else log('Recording too large to save, try a shorter one');
-        updSound();
-      };
-      fr.readAsDataURL(blob);
-      $('bRec').textContent = 'Record my voice message'; $('bRec').classList.remove('rec');
+  // ---------- purity count ----------
+  // Day 1 = halachic day of onset. The sefer: at least 5 days (day of onset + 4) before the
+  // 7 clean days, so hefsek taharah is no earlier than day 5 (some Sephardim wait longer;
+  // 4 only on a Rav's instruction), and the setting is a number of days.
+  // Hefsek is done in the afternoon before sunset; the 7 clean days start the next day;
+  // mikvah is on the night after the 7th clean day (evening of civil hefsek date + 7).
+  function purityPlan(p, minhag, _noAlt) {
+    const H0 = halachicDate(p);
+    const minDay = minDaysOf(minhag);
+    const earliestHefsek = addDays(H0, minDay - 1);
+    const warnings = [];
+    let alt = null;
+    if (p.bein && !_noAlt) {
+      warnings.push('beinHashmashos');
+      const a = purityPlan({ onsetISO: p.onsetISO, night: true }, minhag, true);
+      alt = { earliestHefsek: a.earliestHefsek, mikvahEvening: a.mikvahEvening };
+    }
+    let hefsek = earliestHefsek;
+    let actualEntered = false;
+    if (p.hefsekISO) {
+      actualEntered = true;
+      hefsek = parseISO(p.hefsekISO);
+      if (diffDays(hefsek, earliestHefsek) < 0) warnings.push('hefsekTooEarly');
+      if (p.hefsekAfterSunset) {
+        warnings.push('hefsekAfterSunset');
+        // ch.6 s.11: a hefsek after sunset counts as if done the next day,
+        // so the 7 clean days begin the day after that.
+        hefsek = addDays(hefsek, 1);
+      }
+    }
+    if (weekday(hefsek) === 5) warnings.push('hefsekErevShabbat');
+    const firstClean = addDays(hefsek, 1);
+    const lastClean = addDays(hefsek, 7);
+    const mikvahEvening = lastClean; // civil date whose evening (after nightfall) is the mikvah night
+    if (weekday(mikvahEvening) === 5) warnings.push('mikvahShabbat');
+    if (weekday(mikvahEvening) === 6) warnings.push('mikvahMotzeiShabbat');
+    const fn = fastNight(mikvahEvening);
+    if (fn === 'yomKippur') warnings.push('mikvahYK');
+    if (fn === 'tishaBav') warnings.push('mikvahTB');
+    return {
+      day1: H0, earliestHefsek, hefsek, actualEntered,
+      firstClean, lastClean, mikvahEvening, warnings, alt,
     };
-    rec.start();
-    $('bRec').textContent = 'Stop recording (max 8 s)'; $('bRec').classList.add('rec');
-    recTimer = setTimeout(() => { if (rec && rec.state === 'recording') rec.stop(); }, 8000);
-  } catch (e) { log('Microphone not available: ' + e.message); }
-};
-$('bRecDel').onclick = () => { store('bsc_voice', null); log('Your voice message was removed'); updSound(); };
-$('bChimeUp').onclick = () => $('chimeFile').click();
-$('chimeFile').onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  if (f.size > 1500000){ log('That file is too big (max about 1.5 MB). Use a short clip.'); return; }
-  const fr = new FileReader();
-  fr.onload = () => { if (store('bsc_chime', fr.result)) log('Your own chime was saved'); else log('Could not save that file'); updSound(); };
-  fr.readAsDataURL(f);
-  e.target.value = '';
-};
-$('bChimeDel').onclick = () => { store('bsc_chime', null); log('Your own chime was removed'); updSound(); };
+  }
 
-// ---------- live GPS (page must stay open) ----------
-let wid = null, fast = 0, slowSince = 0;
-$('bGps').onclick = () => {
-  if (wid !== null){ navigator.geolocation.clearWatch(wid); wid = null; $('bGps').textContent = 'Turn on GPS detection'; $('bGps').classList.remove('on'); return; }
-  if (!navigator.geolocation){ log('GPS not available here'); return; }
-  wid = navigator.geolocation.watchPosition(p => {
-    last = p.coords;
-    const v = p.coords.speed;
-    if (v == null) return;
-    $('gpsv').textContent = Math.round(v * 3.6) + ' km/h';
-    if (v > 4.2){ fast++; slowSince = 0; if (fast >= 3 && st === 'idle') signalDrive('GPS'); }
-    else { fast = 0; if (st === 'driving'){ if (!slowSince) slowSince = Date.now(); if (Date.now() - slowSince > 60000) signalParked('GPS: stopped 60 s'); } }
-  }, e => log('GPS error: ' + e.message), {enableHighAccuracy:true, maximumAge:0});
-  try { navigator.wakeLock && navigator.wakeLock.request('screen'); } catch (e) {}
-  $('bGps').textContent = 'GPS detection on (tap to stop)'; $('bGps').classList.add('on');
-  log('GPS detection on');
-};
+  // ---------- onot / vesatot ----------
+  // Same Hebrew day next month. Sefer ch.18 s.2: a period seen on the 30th is kept on the 30th of
+  // the next month that has one (if the next month has only 29 days, the 30th "in two months").
+  function nextMonthSameDay(H) {
+    const hp = hebParts(H);
+    for (let i = 27; i <= 33; i++) {
+      const d = addDays(H, i), dp = hebParts(d);
+      if (dp.day === hp.day && dp.month !== hp.month) return { date: d, note: null };
+    }
+    if (hp.day === 30) {
+      for (let i = 34; i <= 100; i++) {
+        const d = addDays(H, i), dp = hebParts(d);
+        if (dp.day === 30 && dp.month !== hp.month) return { date: d, note: 'day30' };
+      }
+      // very rare run of short months: fall back to the 1st of the following month
+      for (let i = 28; i <= 34; i++) {
+        const d = addDays(H, i);
+        if (hebParts(d).day === 1) return { date: d, note: 'day30' };
+      }
+    }
+    return null;
+  }
 
-// ---------- settings ----------
-['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach((n, i) => {
-  const l = document.createElement('label');
-  l.innerHTML = '<input type="checkbox"> ' + n;
-  const c = l.firstChild; c.checked = S.days.includes(i);
-  c.onchange = () => { S.days = S.days.filter(x => x !== i); if (c.checked) S.days.push(i); save(); };
-  $('days').appendChild(l);
+  function sortedPeriods(periods) {
+    return periods.slice().sort((a, b) => halachicDate(a) - halachicDate(b));
+  }
+
+  function kavuaHaflagah(list, K) {
+    if (list.length < K + 1) return null;
+    const iv = [];
+    for (let i = 1; i < list.length; i++) iv.push(diffDays(halachicDate(list[i]), halachicDate(list[i - 1])));
+    const lastK = iv.slice(-K);
+    const sameOnah = list.slice(-(K + 1)).every(p => onah(p) === onah(list[list.length - 1]));
+    return lastK.every(x => x === lastK[0]) && sameOnah ? lastK[0] : null;
+  }
+
+  function kavuaYomHachodesh(list, K) {
+    if (list.length < K) return false;
+    const lastK = list.slice(-K);
+    const day0 = hebParts(halachicDate(lastK[0])).day;
+    for (let i = 0; i < lastK.length; i++) {
+      if (hebParts(halachicDate(lastK[i])).day !== day0) return false;
+      if (onah(lastK[i]) !== onah(lastK[0])) return false;
+      if (i > 0) {
+        const gap = diffDays(halachicDate(lastK[i]), halachicDate(lastK[i - 1]));
+        if (gap < 28 || gap > 31) return false;
+      }
+    }
+    return true;
+  }
+
+  function nextKavuaDate(d) { const r = nextMonthSameDay(d); return r ? r.date : null; }
+
+  // An established veset hachodesh stays in force until it is uprooted: K months in a row at its
+  // time without her seeing (sefer ch.16 s.11). Returns { day, onah, next, miss } or null.
+  function activeKavuaChodesh(list, K) {
+    let est = -1;
+    for (let i = K - 1; i < list.length; i++) if (kavuaYomHachodesh(list.slice(0, i + 1), K)) est = i;
+    if (est < 0) return null;
+    const o = onah(list[est]);
+    const day = hebParts(halachicDate(list[est])).day;
+    let T = nextKavuaDate(halachicDate(list[est]));
+    let miss = 0;
+    for (let j = est + 1; j < list.length; j++) {
+      const Hj = halachicDate(list[j]), oj = onah(list[j]);
+      while (T && (T < Hj || (T.getTime() === Hj.getTime() && oj !== o))) { miss++; T = nextKavuaDate(T); }
+      if (T && T.getTime() === Hj.getTime() && oj === o) { miss = 0; T = nextKavuaDate(T); }
+    }
+    if (miss >= K || !T) return null;
+    return { day, onah: o, next: T, miss };
+  }
+
+  // Established veset haflagah (same gap K times). Uprooted after K gaps that do not match.
+  function activeKavuaHaflagah(list, K) {
+    let est = -1, I = null;
+    for (let i = K; i < list.length; i++) {
+      const v = kavuaHaflagah(list.slice(0, i + 1), K);
+      if (v !== null && v > 0) { est = i; I = v; }
+    }
+    if (est < 0) return null;
+    const o = onah(list[est]);
+    let miss = 0;
+    for (let j = est + 1; j < list.length; j++) {
+      const d = diffDays(halachicDate(list[j]), halachicDate(list[j - 1]));
+      if (d === I && onah(list[j]) === o) miss = 0; else miss++;
+    }
+    if (miss >= K) return null;
+    return { interval: I, onah: o, next: addDays(halachicDate(list[list.length - 1]), I), miss };
+  }
+
+  // Projects the onot to watch after the period at index `idx` of the sorted list.
+  //  - an established veset (kavua) that is still in force: only it is kept (sefer ch.17 s.1),
+  //    plus the ordinary ones for a new sighting that was off her veset; no onat beinonit then
+  //  - no kavua: yom hachodesh, haflagah, onat beinonit (day 30, optionally 31) of the last period,
+  //    and earlier vesatot whose time has not come yet (ch.18 s.1 and s.4)
+  function projectOnot(periods, idx, settings) {
+    const list = sortedPeriods(periods).slice(0, idx + 1);
+    const cur = list[list.length - 1];
+    const H = halachicDate(cur);
+    const o = onah(cur);
+    const K = settings.kavuaTimes || 3;
+    const both = settings.beinonitBoth !== false;
+    const out = [];
+
+    const kc = activeKavuaChodesh(list, K), kh = activeKavuaHaflagah(list, K);
+    const anyKavua = !!(kc || kh);
+    const lastGap = list.length >= 2 ? diffDays(H, halachicDate(list[list.length - 2])) : 0;
+    const kcMatch = !kc || (hebParts(H).day === kc.day && o === kc.onah);
+    const khMatch = !kh || (lastGap === kh.interval && o === kh.onah);
+    const onlyKavua = anyKavua && kcMatch && khMatch;
+
+    if (kc) out.push({ kind: 'kavuaChodesh', date: kc.next, onah: kc.onah, kavua: true, note: null });
+    if (kh) out.push({ kind: 'kavuaHaflagah', date: kh.next, onah: kh.onah, kavua: true, interval: kh.interval });
+
+    if (!onlyKavua) {
+      const ym = nextMonthSameDay(H);
+      if (ym) out.push({ kind: 'yomHachodesh', date: ym.date, onah: o, note: ym.note, kavua: false });
+      if (!anyKavua) {
+        out.push({ kind: 'onat30', date: addDays(H, 29), onah: both ? 'both' : o });
+        if (settings.include31 !== false) out.push({ kind: 'onat31', date: addDays(H, 30), onah: both ? 'both' : o });
+      }
+      if (lastGap > 0) out.push({ kind: 'haflagah', date: addDays(H, lastGap), onah: o, interval: lastGap, kavua: false });
+
+      // earlier vesatot of a woman with no kavua that were not yet reached (so not uprooted)
+      for (let k = 0; k < list.length - 1; k++) {
+        const Hk = halachicDate(list[k]), ok = onah(list[k]);
+        const ymk = nextMonthSameDay(Hk);
+        if (ymk && ymk.date > H) out.push({ kind: 'yomHachodeshEarlier', date: ymk.date, onah: ok, note: ymk.note });
+        if (k >= 1) {
+          const I = diffDays(Hk, halachicDate(list[k - 1]));
+          if (I > 0) {
+            const d = addDays(Hk, I);
+            if (d > H) out.push({ kind: 'haflagahEarlier', date: d, onah: ok, interval: I });
+          }
+        }
+      }
+    }
+
+    // drop duplicates (same family, same date and onah); keep the first, sort by date
+    const fam = { yomHachodesh: 'c', yomHachodeshEarlier: 'c', kavuaChodesh: 'c', haflagah: 'h', haflagahEarlier: 'h', kavuaHaflagah: 'h', onat30: 'b30', onat31: 'b31' };
+    const seen = new Set(), res = [];
+    out.forEach(x => {
+      const key = fam[x.kind] + '|' + toISO(x.date) + '|' + x.onah;
+      if (!seen.has(key)) { seen.add(key); res.push(x); }
+    });
+    return res.sort((a, b) => a.date - b.date);
+  }
+
+  // For an onah on halachic date X: the night onah begins at sunset on civil X-1.
+  function onahStartCivil(date, o) { return (o === 'night' || o === 'both') ? addDays(date, -1) : date; }
+
+  // ---------- sunset (NOAA/Almanac approximation, ~1-2 min accuracy) ----------
+  const rad = Math.PI / 180, deg = 180 / Math.PI;
+  function dayOfYear(dt) {
+    const start = Date.UTC(dt.getUTCFullYear(), 0, 0);
+    return Math.floor((dt.getTime() - start) / DAY);
+  }
+  function sunTimeUTC(dateISO, lat, lon, rising) {
+    const dt = parseISO(dateISO);
+    const N = dayOfYear(dt);
+    const lngHour = lon / 15;
+    const t = N + ((rising ? 6 : 18) - lngHour) / 24;
+    const M = 0.9856 * t - 3.289;
+    let L = M + 1.916 * Math.sin(M * rad) + 0.020 * Math.sin(2 * M * rad) + 282.634;
+    L = ((L % 360) + 360) % 360;
+    let RA = deg * Math.atan(0.91764 * Math.tan(L * rad));
+    RA = ((RA % 360) + 360) % 360;
+    RA += Math.floor(L / 90) * 90 - Math.floor(RA / 90) * 90;
+    RA /= 15;
+    const sinDec = 0.39782 * Math.sin(L * rad);
+    const cosDec = Math.cos(Math.asin(sinDec));
+    const cosH = (Math.cos(90.833 * rad) - sinDec * Math.sin(lat * rad)) / (cosDec * Math.cos(lat * rad));
+    if (cosH > 1 || cosH < -1) return null; // the sun does not rise or set that day
+    const H = (rising ? 360 - deg * Math.acos(cosH) : deg * Math.acos(cosH)) / 15;
+    const T = H + RA - 0.06571 * t - 6.622;
+    const UT = (((T - lngHour) % 24) + 24) % 24;
+    const dayStart = Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+    let ms = dayStart + UT * 3600000;
+    const noonUTC = dayStart + (12 - lngHour) * 3600000; // local solar noon, roughly
+    if (rising) { while (ms > noonUTC) ms -= DAY; while (ms < noonUTC - DAY) ms += DAY; }
+    else { while (ms < noonUTC) ms += DAY; while (ms > noonUTC + DAY) ms -= DAY; }
+    return new Date(ms);
+  }
+  function sunsetUTC(dateISO, lat, lon) { return sunTimeUTC(dateISO, lat, lon, false); }
+  function sunriseUTC(dateISO, lat, lon) { return sunTimeUTC(dateISO, lat, lon, true); }
+  function fmtTime(date, tz, lang) {
+    return new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : 'en-GB',
+      { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz }).format(date);
+  }
+
+  return {
+    parseISO, toISO, addDays, diffDays, hebParts, hebFormat, civilFormat, weekday,
+    halachicDate, onah, purityPlan, projectOnot, sortedPeriods, onahStartCivil, fastNight, BEIN_MIN,
+    nextMonthSameDay, kavuaHaflagah, kavuaYomHachodesh, activeKavuaChodesh, activeKavuaHaflagah, sunsetUTC, sunriseUTC, fmtTime,
+  };
 });
-$('manual').checked = S.manual; $('manual').onchange = e => { S.manual = e.target.checked; save(); };
-$('from').value = S.from; $('from').onchange = e => { S.from = e.target.value; save(); };
-$('to').value = S.to; $('to').onchange = e => { S.to = e.target.value; save(); };
-$('temp').value = S.temp; $('tempv').textContent = S.temp + '°C';
-$('temp').oninput = e => { S.temp = +e.target.value; $('tempv').textContent = S.temp + '°C'; save(); };
-$('me').value = S.me; $('me').oninput = e => { S.me = e.target.value; save(); };
 
-// ---------- family circle ----------
-let es = null, alertSent = false;
+</script>
+<script>
+(function(){
+const L = NiddahLogic;
+const STORE = 'niddah.v1';
 
-function normContacts(){
-  if (!Array.isArray(S.contacts)) S.contacts = [];
-  while (S.contacts.length < 4) S.contacts.push({n:'', p:''});
-  S.contacts = S.contacts.slice(0, 4).map(c => ({n: (c && c.n) || '', p: (c && c.p) || ''}));
-}
-function newTopic(){
-  let s = '';
-  try { const a = new Uint8Array(12); crypto.getRandomValues(a); s = Array.from(a, b => b.toString(36).padStart(2, '0')).join(''); }
-  catch (e) { for (let i = 0; i < 24; i++) s += Math.floor(Math.random() * 36).toString(36); }
-  return 'bsc-' + s.slice(0, 16);
-}
-function mapUrl(){ return last ? 'https://maps.google.com/?q=' + last.latitude + ',' + last.longitude : null; }
-function grabLocation(){
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(
-    p => { last = p.coords; log('Car location saved'); },
-    e => log('Could not get the car location: ' + e.message),
-    {enableHighAccuracy:true, timeout:15000, maximumAge:60000});
-}
-function alertText(){
-  const url = mapUrl();
-  return 'Possible child' + (S.child ? ' (' + S.child + ')' : '') + ' left in the car. '
-    + (S.me ? S.me + ' has not answered. ' : '')
-    + 'Temp ' + S.temp + '°C. '
-    + (url ? 'Car location: ' + url : 'Car location unknown, please call ' + (S.me || 'the driver') + '.')
-    + ' Please check now.';
-}
-async function publish(o){
-  if (!S.chan || !S.topic) return false;
-  try {
-    const r = await fetch('https://ntfy.sh/', {method:'POST', body: JSON.stringify(Object.assign({topic: S.topic}, o))});
-    return r.ok;
-  } catch (e) { return false; }
-}
-async function sendAlert(){
-  const url = mapUrl();
-  const o = {title:'Child may be in the car', message: alertText(), priority:5, tags:['rotating_light']};
-  if (url){ o.click = url; o.actions = [{action:'view', label:'Open map', url: url}]; }
-  const ok = await publish(o);
-  alertSent = ok;
-  log(ok ? 'Alert sent to the family circle' : 'Could not reach the family channel. Tap "Text everyone now".');
-}
-async function sendAllClear(){
-  alertSent = false;
-  const ok = await publish({title:'All clear', message: (S.me || 'The driver') + ' confirmed the child is safe.', priority:3, tags:['white_check_mark']});
-  log(ok ? 'All-clear sent to the family circle' : 'Could not send the all-clear');
-}
-function smsHref(text){
-  const nums = S.contacts.map(c => (c.p || '').replace(/[^\d+]/g, '')).filter(Boolean);
-  return 'sms:' + nums.join(',') + '?body=' + encodeURIComponent(text);
-}
-function textAll(){
-  if (!S.contacts.some(c => c.p)){ log('Add at least one phone number first'); return; }
-  location.href = smsHref(alertText());
-}
-function addChan(m){
-  const li = document.createElement('li');
-  if ((m.title || '').toLowerCase().includes('child may be')) li.className = 'alert';
-  const t = new Date((m.time || Date.now() / 1000) * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  const tm = document.createElement('time'); tm.textContent = t;
-  li.appendChild(tm);
-  li.appendChild(document.createTextNode((m.title ? m.title + ': ' : '') + (m.message || '')));
-  $('chan').prepend(li);
-  while ($('chan').children.length > 30) $('chan').lastChild.remove();
-}
-function subscribe(){
-  if (es){ es.close(); es = null; }
-  $('dot').classList.remove('live');
-  if (!S.chan || !S.topic){ $('chanState').textContent = 'Channel off'; return; }
-  $('chanState').textContent = 'Connecting...';
-  try {
-    es = new EventSource('https://ntfy.sh/' + S.topic + '/sse?since=2h');
-    es.onopen = () => { $('dot').classList.add('live'); $('chanState').textContent = 'Channel connected'; };
-    es.onerror = () => { $('dot').classList.remove('live'); $('chanState').textContent = 'Reconnecting...'; };
-    es.onmessage = ev => {
-      try {
-        const m = JSON.parse(ev.data);
-        if (m.event && m.event !== 'message') return;
-        addChan(m);
-        if (m.title && m.title.indexOf('Reply') === 0) log('From the circle: ' + m.message);
-      } catch (e) {}
-    };
-  } catch (e) { $('chanState').textContent = 'Channel unavailable'; }
-}
-function renderContacts(){
-  const box = $('contacts'); box.innerHTML = '';
-  S.contacts.forEach((c, i) => {
-    const r = document.createElement('div'); r.className = 'crow';
-    const n = document.createElement('input'); n.type = 'text'; n.className = 'nm'; n.placeholder = 'Name ' + (i + 1); n.value = c.n;
-    n.oninput = () => { c.n = n.value; save(); };
-    const p = document.createElement('input'); p.type = 'text'; p.className = 'ph'; p.placeholder = 'Phone'; p.inputMode = 'tel'; p.value = c.p;
-    const a = document.createElement('a'); a.textContent = 'Call'; a.href = c.p ? 'tel:' + c.p.replace(/[^\d+]/g, '') : '#';
-    p.oninput = () => { c.p = p.value; a.href = c.p ? 'tel:' + c.p.replace(/[^\d+]/g, '') : '#'; save(); };
-    r.append(n, p, a); box.appendChild(r);
-  });
-}
-function inviteText(){
-  return 'I am adding you to my family safety circle (' + (S.child ? 'for ' + S.child + ' ' : '') + 'car safety alerts). '
-    + '1) Install the free ntfy app. 2) Tap + and subscribe to this topic: ' + S.topic + ' (keep the default server, ntfy.sh). '
-    + 'You will get an urgent alert with the car location if my child may be left in the car, and you can reply there. '
-    + 'You can also open https://ntfy.sh/' + S.topic + ' in a browser.';
-}
-async function circleSend(title, message, tags){
-  const ok = await publish({title: title, message: message, priority: 4, tags: tags || []});
-  if (!ok) log('Could not reach the family channel');
-  return ok;
-}
-function initCircle(){
-  normContacts();
-  if (!S.topic){ S.topic = newTopic(); }
-  save();
-  renderContacts();
-  $('topic').textContent = S.topic;
-  $('chanOn').checked = S.chan;
-  $('chanOn').onchange = e => { S.chan = e.target.checked; save(); subscribe(); };
-  $('bNewTopic').onclick = () => {
-    if (!confirm('A new secret name means your contacts must subscribe again. Continue?')) return;
-    S.topic = newTopic(); save(); $('topic').textContent = S.topic; $('chan').innerHTML = ''; subscribe(); log('New secret channel name created');
-  };
-  $('bInvite').onclick = async () => {
-    const txt = inviteText();
-    try { if (navigator.share){ await navigator.share({title:'Family safety circle', text: txt}); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-    try { await navigator.clipboard.writeText(txt); log('Invitation copied. Paste it into a message to your contacts.'); }
-    catch (e) { prompt('Copy this invitation:', txt); }
-  };
-  $('bTestFam').onclick = async () => {
-    grabLocation();
-    const ok = await circleSend('Test', 'This is only a test from ' + (S.me || 'the driver') + '. No action needed.', ['test_tube']);
-    log(ok ? 'Test sent. Contacts who joined should see it now.' : 'Test failed');
-  };
-  $('bTextAll').onclick = textAll;
-  $('bOnway').onclick = () => circleSend('Reply', (S.me || 'Someone') + ': I\'m on my way to the car.', ['runner']);
-  $('bGot').onclick = () => circleSend('Reply', (S.me || 'Someone') + ': I have the child. All safe.', ['white_check_mark']);
-  $('bSend').onclick = () => { const v = $('msg').value.trim(); if (!v) return; circleSend('Reply', (S.me ? S.me + ': ' : '') + v); $('msg').value = ''; };
-  subscribe();
-}
-$('speed').value = S.speed; $('speed').onchange = e => { S.speed = +e.target.value; save(); };
+const PRESETS = {
+  jerusalem:{n:'Jerusalem',h:'ירושלים',lat:31.778,lon:35.235,tz:'Asia/Jerusalem'},
+  telaviv:{n:'Tel Aviv',h:'תל אביב',lat:32.085,lon:34.782,tz:'Asia/Jerusalem'},
+  bneibrak:{n:'Bnei Brak',h:'בני ברק',lat:32.081,lon:34.834,tz:'Asia/Jerusalem'},
+  beitshemesh:{n:'Beit Shemesh',h:'בית שמש',lat:31.747,lon:34.988,tz:'Asia/Jerusalem'},
+  haifa:{n:'Haifa',h:'חיפה',lat:32.794,lon:34.99,tz:'Asia/Jerusalem'},
+  beersheva:{n:'Beer Sheva',h:'באר שבע',lat:31.253,lon:34.792,tz:'Asia/Jerusalem'},
+  newyork:{n:'New York',h:'ניו יורק',lat:40.713,lon:-74.006,tz:'America/New_York'},
+  brooklyn:{n:'Brooklyn',h:'ברוקלין',lat:40.678,lon:-73.944,tz:'America/New_York'},
+  lakewood:{n:'Lakewood NJ',h:'לייקווד',lat:40.096,lon:-74.222,tz:'America/New_York'},
+  miami:{n:'Miami',h:'מיאמי',lat:25.762,lon:-80.192,tz:'America/New_York'},
+  chicago:{n:'Chicago',h:'שיקגו',lat:41.878,lon:-87.63,tz:'America/Chicago'},
+  losangeles:{n:'Los Angeles',h:'לוס אנג׳לס',lat:34.052,lon:-118.244,tz:'America/Los_Angeles'},
+  toronto:{n:'Toronto',h:'טורונטו',lat:43.653,lon:-79.383,tz:'America/Toronto'},
+  montreal:{n:'Montreal',h:'מונטריאול',lat:45.502,lon:-73.567,tz:'America/Toronto'},
+  london:{n:'London',h:'לונדון',lat:51.507,lon:-0.128,tz:'Europe/London'},
+  manchester:{n:'Manchester',h:'מנצ׳סטר',lat:53.481,lon:-2.243,tz:'Europe/London'},
+  antwerp:{n:'Antwerp',h:'אנטוורפן',lat:51.221,lon:4.4,tz:'Europe/Brussels'},
+  amsterdam:{n:'Amsterdam',h:'אמסטרדם',lat:52.37,lon:4.895,tz:'Europe/Amsterdam'},
+  paris:{n:'Paris',h:'פריז',lat:48.857,lon:2.352,tz:'Europe/Paris'},
+  zurich:{n:'Zurich',h:'ציריך',lat:47.376,lon:8.541,tz:'Europe/Zurich'},
+  buenosaires:{n:'Buenos Aires',h:'בואנוס איירס',lat:-34.604,lon:-58.382,tz:'America/Argentina/Buenos_Aires'},
+  johannesburg:{n:'Johannesburg',h:'יוהנסבורג',lat:-26.204,lon:28.047,tz:'Africa/Johannesburg'},
+  melbourne:{n:'Melbourne',h:'מלבורן',lat:-37.814,lon:144.963,tz:'Australia/Melbourne'},
+  sydney:{n:'Sydney',h:'סידני',lat:-33.869,lon:151.209,tz:'Australia/Sydney'},
+  custom:{n:'Custom / GPS',h:'מותאם / GPS',lat:0,lon:0,tz:'UTC'}
+};
 
-// ---------- start-of-drive questions ----------
-let tripKids = null, tripExc = false, startAsked = false, startTimer;
+const I18N = {
+en:{
+ whatIs:'What is', glossary:'Words explained', glossAllBtn:'See all words explained',
+ helpWords:'Not sure which to choose? Tap ? to learn the words.',
+ guideTitle:'Start here: how to use this app',
+ g1:'Set where you live. Search your city under “Location”. The app needs it to know when the day ends (sunset) and the night begins.',
+ g2:'Enter the date and time you first saw blood, then press “Calculate and save”. If you are not sure it counts, ask a Rav first.',
+ g3:'Read your dates: the earliest day for the clean check, the 7 clean days, and the night you go to the mikvah. Tap any ? to see what a word means.',
+ g4:'After the clean check, type the date you really did it in the box. You can come back any time; your dates are saved on your phone only.',
+ gHide:'Got it, hide this', gShow:'Show the start-here guide again',
+ title:'Niddah Calculator', disc:'A calculation aid only, not a halachic ruling. Have the results confirmed by your Rav, especially in unusual cases (long bleeding, Yom Tov, pregnancy, an established veset).',
+ privacy:'All data stays on this device only.',
+ newPeriod:'New period', onsetDate:'Date seen', onsetTime:'Time (optional, sets day/night from sunset)',
+ onahDay:'Day (before sunset)', onahBein:'Bein hashmashos (sunset to 18 min after)', onahNight:'Night (over 18 min after sunset)', beinOnah:'Bein hashmashos', calc:'Calculate and save',
+ autoBein:'Time is within 18 minutes after sunset (bein hashmashos).', autoPre:'Time is before sunrise at this location, so it was recorded as a night onah of the previous evening (same Hebrew day).', dawnMin:'The day starts this many minutes before sunrise (0 = at sunrise, as in the sefer)',
+ settings:'Settings', minDays:'Days to wait before hefsek taharah (day 1 = day of onset)', d5:'5 days (standard)', d4:'4 days (a bride after first relations, or if your Rav instructs)', d6:'6 days (longer custom; ask your Rav)', d7:'7 days (longer custom; ask your Rav)',
+ include31:'Also keep day 31 (onat beinonit)', beinonitBoth:'Day 30 and 31: keep both the night and the day (stricter)', kavuaTimes:'Times to establish a veset kavua',
+ location:'Location (defines her day and night)', lat:'Latitude', lon:'Longitude', tz:'Time zone', gps:'Use my location',
+ locNotSet:'Location not set yet. The times below use {place}. Search for your city so day and night are right.',
+ locSearchLabel:'Search for a city or place', locSearchPh:'e.g. Antwerp, Bnei Brak, Lakewood', locSearch:'Search', searching:'Searching…',
+ noResults:'No places found. Try another spelling, or enter coordinates.',
+ searchFail:'Search needs an internet connection. Enter coordinates below or pick a common city.',
+ locPrivacy:'Searching sends only the place name to Open-Meteo’s free geocoding service. Nothing else leaves your device.',
+ coords:'Enter coordinates or pick a common city', common:'Common cities',
+ todayTimes:'Today here', dawnL:'dawn', sunriseL:'sunrise', sunsetL:'sunset', nightfallL:'nightfall',
+ dayNightHelp:'Night begins at sunset (bein hashmashos: the first 18 minutes). The day begins at sunrise (netz), as in the sefer. If your Rav says the day begins earlier, set the minutes in Settings.',
+ badCoords:'Latitude must be between -90 and 90, and longitude between -180 and 180.', badTz:'Unknown time zone; UTC is used instead.',
+ gpsFail:'Could not get your location.', placeGps:'My location (GPS)', placeCoords:'Custom coordinates',
+ checkTz:'Coordinates saved. Please check that the time zone ({tz}) is right for this place.',
+ tzMismatch:'The time zone ({tz}) does not look right for these coordinates. Times could be off by hours; please correct it.',
+ tzeit:'Minutes after sunset for nightfall', status:'Special status', sNone:'None', sPreg1:'Pregnant, first 3 months', sPreg:'Pregnant, after 3 months', sNurs:'Nursing (periods not back yet)', sNurs2:'Nursing, periods have come back', sPost:'Just gave birth (first weeks)', sOld:'Elderly, bleeding stopped (age 60–65+)',
+ nPreg1:'In the first three months of pregnancy only the yom hachodesh is usually kept (sefer ch. 23). The other onot are hidden. Ask your Rav.',
+ nPreg:'After the first three months of pregnancy the onot are not kept (sefer ch. 23). If blood is seen during pregnancy, the same date next month is kept as a veset that is not established. Ask your Rav.',
+ nNurs:'A nursing woman, and any woman during the two years after a birth, does not keep onot while her periods have not come back (sefer ch. 23). An established veset from before is not uprooted in these two years. If she starts to see more or less regularly, change the status to “Nursing, periods have come back”. Ask your Rav.',
+ nNurs2:'Periods have come back while nursing: the sefer says to keep an established veset if she has one, the “confused days” (yemei hanevuchim), and onat beinonit, yom hachodesh and haflagah from her current periods (ch. 23). The onot below follow this. The app does not calculate the confused days. Ask your Rav.',
+ nPost:'After a birth she may immerse only after the days of impurity: 7 days after a boy and 14 days after a girl; many wait 40 days (boy) or 80 days (girl) by custom (sefer ch. 23). Onot are not kept (she counts as nursing for two years). Ask your Rav.',
+ nOld:'An elderly woman whose bleeding has stopped completely no longer needs to keep onot (sefer ch. 23). The sefer takes age 60–65 or more as certainly elderly; below that it depends on the case. Ask your Rav.',
+ results:'Results', day1:'Day 1 (the Jewish day the bleeding started)', earliest:'Earliest day for the clean check (hefsek taharah)',
+ beforeSunset:'before sunset', sunsetAt:'sunset', hefsekDone:'Clean check (hefsek taharah) actually done',
+ hefsekAfter:'Done after sunset', saveHefsek:'Update', cleanDays:'The 7 clean days (shiva nekiim)', mikvah:'Mikvah night (when she immerses)',
+ eveningOf:'Evening of', afterNightfall:'after nightfall', nightfall:'nightfall approx.', hebDateBegins:'Hebrew date at night',
+ wTooEarly:'This hefsek is earlier than the minimum number of waiting days; ask a Rav.',
+ wAfter:'A hefsek after sunset counts as if done the next day, so the 7 clean days start the day after that. Dates below assume this.',
+ wShabbat:'The mikvah night is Friday night (Shabbat night). Immersion is permitted when it is her night, but a weekday tevilah may not be delayed to Shabbat without reason. Be careful with the Shabbat work rules (melachot). Ask your Rav.',
+ wMotzSh:'The mikvah night is Saturday night after Shabbat (Motzei Shabbat): permitted. Do the chafifa (washing and preparing) before Shabbat and repeat it briefly afterward.',
+ wBein:'Seen during bein hashmashos (up to 18 minutes after sunset). The sefer counts this day as day 1; some are stringent (Rav Wosner). Onot are calculated leniently; ask a Rav.',
+ wBeinAlt:'If stringent: earliest hefsek {h}, mikvah night {m}.',
+ wErevShabbat:'The clean check falls on Friday (Erev Shabbat): do it before sunset, and before Shabbat is welcomed or before an early evening prayer in your community.',
+ wYK:'The mikvah night is the night Yom Kippur (a fast day) begins. Immersion is not allowed; postpone it one night. Ask your Rav.',
+ wTB:'The mikvah night is the night the Tisha B’Av fast begins. Immersion is not allowed; postpone it one night. Ask your Rav.',
+ hefsekTip:'If blood is seen during the 7 clean days, do a new hefsek when clean (no new 5-day wait) and enter its date here. If the bleeding lasted longer than the waiting days, enter the actual hefsek date.',
+ stain:'Stains and unclear cases: ask a Rav first; the app assumes confirmed tumah.',
+ source:'Rules follow the reference sefer (all chapters). Points marked “ask your Rav” are open questions or customs that differ.',
+ checklist:'Checklist (from the sefer)',
+ c1:'Hefsek taharah: a few minutes before sunset, with a clean cloth; on Erev Shabbat or where Maariv is early, before that (ch. 6).',
+ c2:'The 7 clean days: a clean white undergarment, other clothes and bedding clean and laundered (a white sheet is customary); check morning and before sunset each day (ch. 7).',
+ c3:'If a whole day of checks was missed, or blood is seen: ask a Rav (ch. 7).',
+ c4:'Chafifa and rechitza on the day of tevilah, starting before dark; remove anything that could be a chatzitzah (ch. 9–10).',
+ c5:'Tevilah only at night, after the 7th clean day ends at nightfall (ch. 8).',
+ c6:'The immersion: the whole body and hair under the water, the body slightly bent, arms and legs not pressed together, eyes and mouth closed gently; only in a kosher mikvah, with a woman watching. Ashkenazi custom: two immersions, the blessing after the first (ch. 11).',
+ c7:'After tevilah: do not wash again in the mikvah house; avoid meeting something impure first (the attendant should be the first she meets); she does not have to say she immersed, but until she shows her husband by an act that she did, she is still forbidden to him (ch. 11).',
+ onot:'Days to be careful (onot / vesatot)', yomHachodesh:'Yom hachodesh (same Hebrew date)', onat30:'Day 30 (onat beinonit)', onat31:'Day 31',
+ haflagah:'Haflagah (same number of days between periods)', interval:'interval', days:'days',
+ kavua:'established', dayOnah:'Day onah', nightOnah:'Night onah', nightFrom:'from sunset on', through:'until sunrise', throughDawn:'until dawn',
+ bothOnah:'Night and day', untilSunset:'until sunset on',
+ calTitle:'Calendar', calPeriod:'Period started', calEarliest:'Earliest hefsek taharah', calHefsek:'Hefsek taharah', calClean:'Clean day {n} of 7', calToday:'Today', calHint:'Tap a day for details.', calNone:'Nothing on this day.', calPrev:'Previous month', calNext:'Next month',
+ lgPeriod:'Period', lgHefsek:'Hefsek', lgClean:'7 clean days', lgMikvah:'Mikvah night', lgOnah:'Onah to be careful',
+ repHead:'Report (PDF or Word)', repHelp:'The report is made on this device; nothing is sent anywhere. For PDF, choose “Save as PDF” in the print window.', repShort:'Short version: dates only (no history, onot or settings)', repPdf:'Save as PDF', repWord:'Download Word (.docx)',
+ repTitle:'Niddah report', repPeriod:'This period', repSeen:'Date seen', repMade:'Prepared on', repPlace:'Place', repDayStart:'The day starts', repSunrise:'at sunrise', repMinBefore:'{n} minutes before sunrise', repYes:'yes', repNo:'no', repDate:'Date', repOnah:'Onah', repHebrew:'Hebrew date', repWhat:'What', repWhen:'When', repSettings:'Settings used',
+ kavuaChodesh:'Established yom hachodesh (still in force)', kavuaHaflagah:'Established haflagah (still in force)', yomHachodeshEarlier:'Yom hachodesh from an earlier period (not yet uprooted)', haflagahEarlier:'Haflagah from an earlier period (not yet uprooted)',
+ wDay30:'Next month has no day 30, so the 30th of the following month is shown (as the sefer states). Ask your Rav.',
+ kavuaNote:'An established veset is in force, so only it is kept (sefer ch. 17). Some are also careful for the onah before it, and some also keep onat beinonit. If she saw at another time, the new sighting is kept as well. Ask your Rav.',
+ tipsTitle:'What to do on these days (sefer ch. 20)',
+ tip1:'Keep apart during the onah: no marital relations. Some are also careful with affection (kissing, hugging) and with a shared bed. The other distance rules of niddah are not needed.',
+ tip2:'Check internally (bedikah) at least once during the onah, to see whether there is blood.',
+ tip3:'Better to check more times: night onah, at the start of the night and again in the morning before sunrise (if she slept, when she wakes, even after sunrise); day onah, in the morning when she wakes and again before sunset; onat beinonit, at the start of the night, in the morning, and before sunset.',
+ tip4:'It is good to check again right after the onah ends, to be sure she did not see near its end.',
+ tip5:'If she forgot to check: for a veset that is not established it is still permitted after the onah; for an established veset or onat beinonit she must check as soon as she remembers, and if no blood is found she is presumed clean. Ask your Rav if checking is hard for her.',
+ history:'History', view:'View', del:'Delete', none:'No periods saved yet.', export:'Export reminders (.ics)',
+ discreet:'Discreet titles in calendar', clear:'Delete all data', confirmClear:'Delete all saved data?', confirmDel:'Delete this entry?',
+ autoNight:'Time is after sunset, so it was counted as night.', autoDay:'Time is before sunset, so it was counted as day.',
+ noSunset:'Could not compute sunset for this location.', needDate:'Please choose a date.',
+ rule:'Counting rule: ', ruleN:'minimum {n} days (day 1 = day of onset), then hefsek taharah before sunset, 7 clean days, mikvah the night after the 7th.',
+ evDesc:'Reminder', evHef:'Hefsek taharah (earliest)', evMik:'Mikvah night', evOn:'Onah to watch', evGeneric:'Personal reminder',
+},
+he:{
+ whatIs:'מה זה', glossary:'מילון מונחים', glossAllBtn:'לכל המילים עם הסבר',
+ helpWords:'לא בטוחים במה לבחור? לחצו על ? כדי להבין את המילים.',
+ guideTitle:'התחלה כאן: איך משתמשים באפליקציה',
+ g1:'הגדירו היכן אתם גרים. חפשו את העיר תחת "מיקום". האפליקציה צריכה זאת כדי לדעת מתי היום מסתיים (שקיעה) והלילה מתחיל.',
+ g2:'הזינו את התאריך והשעה שבהם נראה הדם לראשונה ולחצו "חשב ושמור". אם לא ברור שזה נחשב, יש לשאול מורה הוראה קודם.',
+ g3:'קראו את התאריכים: היום המוקדם ביותר להפסק טהרה, שבעת הנקיים, והלילה שבו טובלים. לחצו על ? ליד כל מילה כדי להבין מה פירושה.',
+ g4:'אחרי הפסק הטהרה, הזינו בתיבה את התאריך שבו עשיתם אותו בפועל. אפשר לחזור בכל עת; התאריכים נשמרים רק בטלפון שלכם.',
+ gHide:'הבנתי, הסתר', gShow:'הצג שוב את המדריך להתחלה',
+ title:'מחשבון נדה', disc:'כלי עזר לחישוב בלבד, ואינו פסק הלכה. יש לאשר את התוצאות אצל מורה הוראה, בפרט במקרים חריגים (ראיה ממושכת, יום טוב, הריון, וסת קבוע).',
+ privacy:'כל הנתונים נשמרים במכשיר זה בלבד.',
+ newPeriod:'ראיה חדשה', onsetDate:'תאריך הראיה', onsetTime:'שעה (לא חובה, קובעת יום או לילה לפי השקיעה)',
+ onahDay:'יום (לפני השקיעה)', onahBein:'בין השמשות (משקיעה עד 18 דקות אחריה)', onahNight:'לילה (יותר מ-18 דקות אחרי השקיעה)', beinOnah:'בין השמשות', calc:'חשב ושמור',
+ autoBein:'השעה היא עד 18 דקות אחרי השקיעה (בין השמשות).', autoPre:'השעה לפני הנץ החמה במיקום זה, ולכן נרשמה כעונת לילה של הערב הקודם (אותו יום עברי).', dawnMin:'היום מתחיל כך וכך דקות לפני הזריחה (0 = בזריחה, כמו בספר)',
+ settings:'הגדרות', minDays:'ימי המתנה לפני הפסק טהרה (יום 1 = יום הראיה)', d5:'5 ימים (רגיל)', d4:'4 ימים (כלה אחרי ביאה ראשונה, או אם המורה הוראה הורה)', d6:'6 ימים (מנהג להמתין יותר; יש לשאול מורה הוראה)', d7:'7 ימים (מנהג להמתין יותר; יש לשאול מורה הוראה)',
+ include31:'לשמור גם יום 31 (עונה בינונית)', beinonitBoth:'יום 30 ו-31: לשמור גם לילה וגם יום (מחמיר)', kavuaTimes:'מספר פעמים לקביעת וסת קבוע',
+ location:'מיקום (קובע את היום והלילה)', lat:'קו רוחב', lon:'קו אורך', tz:'אזור זמן', gps:'השתמש במיקום שלי',
+ locNotSet:'המיקום טרם הוגדר. הזמנים להלן לפי {place}. חפשו את העיר שלכם כדי שהיום והלילה יהיו נכונים.',
+ locSearchLabel:'חיפוש עיר או מקום', locSearchPh:'למשל אנטוורפן, בני ברק, לייקווד', locSearch:'חיפוש', searching:'מחפש…',
+ noResults:'לא נמצאו מקומות. נסו כתיב אחר או הזינו קואורדינטות.',
+ searchFail:'החיפוש דורש חיבור לאינטרנט. הזינו קואורדינטות למטה או בחרו עיר נפוצה.',
+ locPrivacy:'החיפוש שולח רק את שם המקום לשירות החיפוש החינמי של Open-Meteo. שום דבר אחר לא יוצא מהמכשיר.',
+ coords:'הזנת קואורדינטות או בחירת עיר נפוצה', common:'ערים נפוצות',
+ todayTimes:'היום כאן', dawnL:'עלות השחר', sunriseL:'זריחה', sunsetL:'שקיעה', nightfallL:'צאת הכוכבים',
+ dayNightHelp:'הלילה מתחיל בשקיעה (בין השמשות: 18 הדקות הראשונות). היום מתחיל בהנץ החמה, כמו בספר. אם המורה הוראה הורה שהיום מתחיל מוקדם יותר, אפשר לקבוע דקות בהגדרות.',
+ badCoords:'קו הרוחב חייב להיות בין -90 ל-90 וקו האורך בין -180 ל-180.', badTz:'אזור זמן לא מוכר; נעשה שימוש ב-UTC.',
+ gpsFail:'לא ניתן לקבל את המיקום.', placeGps:'המיקום שלי (GPS)', placeCoords:'קואורדינטות מותאמות',
+ checkTz:'הקואורדינטות נשמרו. יש לוודא שאזור הזמן ({tz}) מתאים למקום.',
+ tzMismatch:'אזור הזמן ({tz}) אינו נראה מתאים לקואורדינטות אלה. הזמנים עלולים להיות שגויים בכמה שעות; יש לתקן.',
+ tzeit:'דקות אחרי השקיעה לצאת הכוכבים', status:'מצב מיוחד', sNone:'ללא', sPreg1:'הריון, שלושת החודשים הראשונים', sPreg:'הריון, אחרי שלושה חודשים', sNurs:'מניקה (הוסת עדיין לא חזרה)', sNurs2:'מניקה, הוסת חזרה', sPost:'אחרי לידה (השבועות הראשונים)', sOld:'זקנה, הדימום פסק לגמרי (גיל 60–65 ומעלה)',
+ nPreg1:'בשלושת חדשי ההריון הראשונים חוששים בדרך כלל רק לוסת החודש (פרק כ״ג). שאר העונות מוסתרות. יש לשאול מורה הוראה.',
+ nPreg:'אחרי שלושת חדשי ההריון הראשונים אין חוששים לוסתות (פרק כ״ג). אם נראה דם בזמן ההריון, חוששים לו בחודש הבא כוסת שאינה קבועה. יש לשאול מורה הוראה.',
+ nNurs:'מניקה, וכל אשה במשך שנתיים אחרי לידה, אינה חוששת לוסתות כל עוד הוסת לא חזרה (פרק כ״ג). וסת קבוע שהיה לה לפני כן אינו נעקר בשנתיים אלה. אם התחילה לראות פחות או יותר כסדרה, יש לשנות ל“מניקה, הוסת חזרה”. יש לשאול מורה הוראה.',
+ nNurs2:'הוסת חזרה בזמן ההנקה: לפי הספר חוששים לוסת קבוע אם יש, ל“ימים הנבוכים”, ולעונה בינונית, יום החודש וההפלגה לפי הראיות הנוכחיות (פרק כ״ג). העונות להלן נחשבות כך. האפליקציה אינה מחשבת את הימים הנבוכים. יש לשאול מורה הוראה.',
+ nPost:'אחרי לידה מותר לטבול רק אחרי ימי הטומאה: שבעה ימים ליולדת בן וארבעה עשר ליולדת בת; ויש נוהגים להמתין ארבעים יום (בן) או שמונים יום (בת) (פרק כ״ג). העונות אינן נשמרות (היא נחשבת מניקה במשך שנתיים). יש לשאול מורה הוראה.',
+ nOld:'זקנה שפסק דמה לגמרי אינה צריכה לחשוש עוד לוסתותיה (פרק כ״ג). לפי הספר, אשה בת 60–65 ומעלה ודאי נחשבת זקנה; פחות מכך, זה תלוי במקרה. יש לשאול מורה הוראה.',
+ results:'תוצאות', day1:'יום 1 (היום ההלכתי של הראיה)', earliest:'הפסק טהרה, המוקדם ביותר',
+ beforeSunset:'לפני השקיעה', sunsetAt:'שקיעה', hefsekDone:'הפסק טהרה שנעשה בפועל',
+ hefsekAfter:'נעשה אחרי השקיעה', saveHefsek:'עדכן', cleanDays:'שבעה נקיים', mikvah:'ליל טבילה',
+ eveningOf:'ערב', afterNightfall:'אחרי צאת הכוכבים', nightfall:'צאת הכוכבים בקירוב', hebDateBegins:'התאריך העברי בלילה',
+ wTooEarly:'הפסק הטהרה מוקדם ממספר ימי ההמתנה המינימלי; יש לשאול מורה הוראה.',
+ wAfter:'הפסק טהרה אחרי השקיעה נחשב כאילו נעשה למחרת, וספירת שבעה נקיים מתחילה ביום שאחריו. התאריכים להלן מניחים זאת.',
+ wShabbat:'ליל הטבילה הוא ליל שבת. מותר לטבול כשזה ליל טבילתה, אך אסור לדחות טבילת חול לליל שבת ללא סיבה. יש להיזהר ממלאכות שבת. יש לשאול מורה הוראה.',
+ wMotzSh:'ליל הטבילה הוא מוצאי שבת: מותר לטבול. החפיפה נעשית מערב שבת וחוזרים עליה בקצרה במוצאי שבת.',
+ wBein:'ראיה בין השמשות (עד 18 דקות אחרי השקיעה): בספר נחשב יום זה ליום 1; יש שהחמירו (הגר״ש ואזנר). העונות מחושבות לקולא; יש לשאול מורה הוראה.',
+ wBeinAlt:'לפי המחמירים: הפסק טהרה מוקדם ביותר {h}, ליל טבילה {m}.',
+ wErevShabbat:'ההפסק חל בערב שבת: יש לעשותו לפני השקיעה, ולפני קבלת שבת או ערבית מוקדמת בקהילה.',
+ wYK:'ליל הטבילה הוא ליל יום כיפור. אסור לטבול; יש לדחות ללילה הבא. יש לשאול מורה הוראה.',
+ wTB:'ליל הטבילה הוא ליל צום תשעה באב. אסור לטבול; יש לדחות ללילה הבא. יש לשאול מורה הוראה.',
+ hefsekTip:'ראתה דם בתוך שבעת הנקיים: עושה הפסק טהרה חדש כשהיא נקיה (בלי להמתין שוב ה׳ ימים) ומזינה כאן את תאריכו. אם הראיה נמשכה יותר מימי ההמתנה, יש להזין את תאריך ההפסק בפועל.',
+ stain:'כתמים ומקרים לא ברורים: יש לשאול מורה הוראה תחילה; האפליקציה מניחה טומאה ודאית.',
+ source:'הכללים לפי הספר שבידינו (כל הפרקים). מה שמסומן "יש לשאול מורה הוראה" הוא ספק או מנהג שונה.',
+ checklist:'רשימת בדיקה (מתוך הספר)',
+ c1:'הפסק טהרה: כמה דקות לפני השקיעה, בעד נקי; בערב שבת או במקום שמתפללים ערבית מוקדם, לפני כן (פרק ו׳).',
+ c2:'שבעת הנקיים: בגד לבן ונקי לבשר, שאר הבגדים והמצעים נקיים ומכובסים (ונהוג להציע סדין לבן); בדיקה בבוקר ולפני השקיעה בכל יום (פרק ז׳).',
+ c3:'אם הוחסרה בדיקה של יום שלם, או נראה דם: יש לשאול מורה הוראה (פרק ז׳).',
+ c4:'חפיפה ורחיצה ביום הטבילה, מתחילות מבעוד יום; יש להסיר כל דבר שעלול להיות חציצה (פרקים ט׳–י׳).',
+ c5:'טבילה רק בלילה, לאחר שהיום השביעי הסתיים בצאת הכוכבים (פרק ח׳).',
+ c6:'הטבילה: כל הגוף והשיער בתוך המים, הגוף כפוף מעט, הידיים והרגליים לא צמודות, העיניים והפה סגורים בעדינות; רק במקווה כשר, ואשה משגיחה. מנהג אשכנז: שתי טבילות, והברכה אחרי הראשונה (פרק י״א).',
+ c7:'אחרי הטבילה: לא להתרחץ בבית הטבילה; להימנע מלפגוש תחילה דבר טמא (נהוג שהבלנית פוגשת אותה ראשונה); אינה חייבת להגיד שטבלה, אבל כל עוד לא הראתה לבעלה במעשה שטבלה היא עדיין אסורה לו (פרק י״א).',
+ onot:'עונות לשמירה (וסתות)', yomHachodesh:'יום החודש (אותו תאריך עברי)', onat30:'עונה בינונית, יום 30', onat31:'יום 31',
+ haflagah:'הפלגה (אותו מרווח)', interval:'מרווח', days:'ימים',
+ kavua:'קבוע', dayOnah:'עונת יום', nightOnah:'עונת לילה', nightFrom:'מהשקיעה בתאריך', through:'עד הנץ החמה', throughDawn:'עד עלות השחר',
+ bothOnah:'לילה ויום', untilSunset:'עד השקיעה בתאריך',
+ calTitle:'לוח שנה', calPeriod:'תחילת ראיה', calEarliest:'הפסק טהרה, המוקדם ביותר', calHefsek:'הפסק טהרה', calClean:'יום נקי {n} מתוך 7', calToday:'היום', calHint:'לחצו על יום כדי לראות פרטים.', calNone:'אין דבר ביום זה.', calPrev:'החודש הקודם', calNext:'החודש הבא',
+ lgPeriod:'ראיה', lgHefsek:'הפסק טהרה', lgClean:'שבעה נקיים', lgMikvah:'ליל טבילה', lgOnah:'עונה לשמירה',
+ repHead:'דוח (PDF או וורד)', repHelp:'הדוח נוצר במכשיר זה; שום דבר לא נשלח. ל-PDF יש לבחור “שמור כ-PDF” בחלון ההדפסה.', repShort:'גרסה קצרה: תאריכים בלבד (בלי היסטוריה, עונות והגדרות)', repPdf:'שמור כ-PDF', repWord:'הורד קובץ וורד (.docx)',
+ repTitle:'דוח נדה', repPeriod:'הראיה הנוכחית', repSeen:'תאריך הראיה', repMade:'הוכן בתאריך', repPlace:'מקום', repDayStart:'תחילת היום', repSunrise:'בהנץ החמה', repMinBefore:'{n} דקות לפני הזריחה', repYes:'כן', repNo:'לא', repDate:'תאריך', repOnah:'עונה', repHebrew:'תאריך עברי', repWhat:'מה', repWhen:'מתי', repSettings:'הגדרות בשימוש',
+ kavuaChodesh:'יום החודש הקבוע (עדיין בתוקף)', kavuaHaflagah:'הפלגה קבועה (עדיין בתוקף)', yomHachodeshEarlier:'יום החודש מראיה קודמת (טרם נעקר)', haflagahEarlier:'הפלגה מראיה קודמת (טרם נעקרה)',
+ wDay30:'בחודש הבא אין יום 30; מוצג יום 30 בחודש שאחריו (כפי שכתוב בספר). יש לשאול מורה הוראה.',
+ kavuaNote:'וסת קבוע בתוקף, ולכן שומרים רק אותו (פרק י״ז). יש המחמירים גם בעונה שלפניו, ויש השומרים גם עונה בינונית. אם ראתה בזמן אחר, שומרים גם את הראיה החדשה. יש לשאול מורה הוראה.',
+ tipsTitle:'מה עושים בימים אלה (פרק כ׳)',
+ tip1:'בעונה נפרדים: אין קשר זוגי. יש מחמירים גם בחיבה (נשיקה, חיבוק) ובמיטה משותפת. שאר ההרחקות של נדה אינן נהוגות.',
+ tip2:'בודקים בדיקה פנימית לפחות פעם אחת במשך העונה, כדי לראות אם יש דם.',
+ tip3:'עדיף לבדוק כמה פעמים: בעונת לילה, בתחילת הלילה ושוב בבוקר לפני הנץ (ואם ישנה, כשהיא קמה, גם אחרי הנץ); בעונת יום, בבוקר כשקמה ושוב לפני השקיעה; בעונה בינונית, בתחילת הלילה, בבוקר, ולפני השקיעה.',
+ tip4:'טוב לבדוק שוב מיד אחרי סוף העונה, כדי לוודא שלא ראתה סמוך לסופה.',
+ tip5:'אם שכחה לבדוק: בוסת שאינו קבוע מותר אחרי העונה; בוסת קבוע או בעונה בינונית אסורה עד שתבדוק מיד כשנזכרת, ואם לא מצאה דם היא בחזקת טהורה. אם קשה לה לבדוק, יש לשאול מורה הוראה.',
+ history:'היסטוריה', view:'הצג', del:'מחק', none:'עדיין לא נשמרו ראיות.', export:'ייצוא תזכורות (.ics)',
+ discreet:'כותרות דיסקרטיות ביומן', clear:'מחק את כל הנתונים', confirmClear:'למחוק את כל הנתונים השמורים?', confirmDel:'למחוק רשומה זו?',
+ autoNight:'השעה אחרי השקיעה, ולכן נספרה כלילה.', autoDay:'השעה לפני השקיעה, ולכן נספרה כיום.',
+ noSunset:'לא ניתן לחשב שקיעה למיקום זה.', needDate:'נא לבחור תאריך.',
+ rule:'כלל החישוב: ', ruleN:'מינימום {n} ימים (יום 1 = יום הראיה), אחר כך הפסק טהרה לפני השקיעה, שבעה נקיים, וטבילה בלילה שאחרי היום השביעי.',
+ evDesc:'תזכורת', evHef:'הפסק טהרה (המוקדם ביותר)', evMik:'ליל טבילה', evOn:'עונה לשמירה', evGeneric:'תזכורת אישית',
+}};
 
-function speakText(text){
-  try { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = .9; window.speechSynthesis.speak(u); } catch (e) {}
+const GL = {
+ niddah:{e:'Niddah (נדה)',h:'נדה',
+  de:'The status of a woman after she sees blood from the womb. While she is niddah, she and her husband keep apart: no marital relations and no touching, with extra distance rules (for example, not passing things hand to hand and not eating from the same plate). This lasts until she finishes the steps below and immerses in the mikvah.',
+  dh:'המצב של אשה אחרי שראתה דם מהרחם. בזמן זה בני הזוג נפרדים: אין קשר זוגי ואין נגיעה, ויש הרחקות נוספות (למשל לא להעביר דברים מיד ליד ולא לאכול מאותה צלחת). זה נמשך עד שהיא משלימה את השלבים וטובלת במקווה.'},
+ day:{e:'The Jewish day (יום)',h:'היום ההלכתי',
+  de:'In Jewish law a day begins at sunset and ends at the next sunset, not at midnight. So blood seen after sunset belongs to the next day.',
+  dh:'לפי ההלכה יום מתחיל בשקיעה ונגמר בשקיעה הבאה, לא בחצות. לכן דם שנראה אחרי השקיעה שייך ליום הבא.'},
+ sunset:{e:'Sunset, nightfall, sunrise (שקיעה, צאת הכוכבים, הנץ החמה)',h:'שקיעה, צאת הכוכבים, הנץ החמה',
+  de:'Sunset is when the sun goes down and the day ends. Nightfall is a few minutes later, when it is fully night (40 minutes by default); the 7th clean day ends then. Sunrise (netz) is when the day begins for onot: night is from sunset until sunrise, day from sunrise until sunset. If your Rav says the day begins earlier (at dawn), set the minutes in Settings. The app works the times out from your place and the date.',
+  dh:'שקיעה: השמש יורדת והיום נגמר. צאת הכוכבים: כמה דקות אחרי השקיעה, כשכבר לילה מלא (ברירת המחדל 40 דקות); אז נגמר היום השביעי של שבעת הנקיים. הנץ החמה: אז מתחיל היום לעניין העונות: לילה משקיעה עד הנץ, יום מהנץ עד השקיעה. אם המורה הוראה הורה שהיום מתחיל מוקדם יותר (בעלות השחר), אפשר לקבוע דקות בהגדרות. האפליקציה מחשבת את הזמנים לפי המקום והתאריך.'},
+ bein:{e:'Bein hashmashos (בין השמשות)',h:'בין השמשות',
+  de:'The twilight right after sunset, when it is not clearly day or night. In this app it is the first 18 minutes after sunset. Blood seen then is counted as the day that is just ending (some rabbis are stricter, so ask your Rav).',
+  dh:'הדמדומים מיד אחרי השקיעה, כשעוד לא ברור אם זה יום או לילה. באפליקציה: 18 הדקות הראשונות אחרי השקיעה. דם שנראה אז נחשב ליום שמסתיים עכשיו (יש מחמירים, ולכן יש לשאול מורה הוראה).'},
+ fiveDays:{e:'The five days (המתנת חמשת הימים)',h:'המתנת חמשת הימים',
+  de:'Before counting the 7 clean days she waits at least 5 days from the day the bleeding began: the first day plus 4 more. Even if the bleeding stops sooner, the count of 7 cannot start before day 6. (Some communities wait longer; ask your Rav.)',
+  dh:'לפני ספירת שבעת הנקיים ממתינים לפחות 5 ימים מהיום שבו התחילה הראיה: היום הראשון ועוד 4 ימים. גם אם הדם פסק קודם, אי אפשר להתחיל לספור שבעה נקיים לפני היום השישי. (יש קהילות שממתינות יותר; יש לשאול מורה הוראה.)'},
+ hefsek:{e:'Hefsek taharah (הפסק טהרה)',h:'הפסק טהרה',
+  de:'The “clean check”. On or after day 5, in the afternoon shortly before sunset, she checks inside with a clean white cloth to confirm the bleeding has stopped. If the cloth is clean, the 7 clean days start the next day. If it is not clean, or the colour is unclear, ask a Rav. Do it a few minutes before sunset, not after.',
+  dh:'"הבדיקה הנקייה". ביום החמישי או אחריו, אחר הצהריים סמוך לפני השקיעה, בודקים בפנים בעד לבן ונקי כדי לוודא שהדם פסק. אם העד נקי, שבעת הנקיים מתחילים למחרת. אם העד לא נקי או שהצבע לא ברור, יש לשאול מורה הוראה. יש לעשות זאת כמה דקות לפני השקיעה, לא אחריה.'},
+ moch:{e:'Moch dachok (מוך דחוק)',h:'מוך דחוק',
+  de:'A clean soft cloth or cotton placed inside after the hefsek taharah and left until after nightfall. It is a good custom that the sefer recommends strongly.',
+  dh:'פיסת בד או צמר גפן נקיים שמכניסים פנימה אחרי הפסק הטהרה ומשאירים עד אחרי צאת הכוכבים. זה מנהג טוב שהספר ממליץ עליו מאוד.'},
+ bedikah:{e:'Bedikah (בדיקה)',h:'בדיקה',
+  de:'An inside check with a clean white cloth, done the same way as the hefsek taharah. During the 7 clean days the sefer says to check twice every day: once in the morning and once in the afternoon before sunset.',
+  dh:'בדיקה פנימית בעד לבן ונקי, באותה דרך כמו הפסק הטהרה. בשבעת הנקיים הספר קובע לבדוק פעמיים בכל יום: בבוקר ואחר הצהריים לפני השקיעה.'},
+ shiva:{e:'The 7 clean days (שבעה נקיים)',h:'שבעה נקיים',
+  de:'Seven full days in a row with no blood at all. Each day runs from sunset to sunset, and the seventh day ends at nightfall. During these days she wears white undergarments and checks as above. If she sees any blood, she does a new clean check and starts counting again (no new 5-day wait). Ask a Rav what counts.',
+  dh:'שבעה ימים שלמים ברצף בלי שום דם. כל יום נמשך משקיעה עד שקיעה, והיום השביעי נגמר בצאת הכוכבים. בימים אלה לובשים בגד לבן ובודקים כאמור. אם נראה דם, עושים הפסק טהרה חדש וסופרים מההתחלה (בלי להמתין שוב 5 ימים). יש לשאול מורה הוראה מה נחשב.'},
+ chafifa:{e:'Chafifa and rechitza (חפיפה ורחיצה)',h:'חפיפה ורחיצה',
+  de:'Washing and preparing the body on the day of the mikvah: a warm bath or shower, washing and combing the hair, brushing teeth, cleaning nails, so that nothing stands between the water and the body. Start while it is still day.',
+  dh:'הכנת הגוף ביום הטבילה: רחצה בחמין, חפיפת השיער וסירוקו, צחצוח שיניים וניקוי ציפורניים, כדי שלא יהיה דבר בין המים לגוף. מתחילים בעוד יום.'},
+ chatzitzah:{e:'Chatzitzah (חציצה)',h:'חציצה',
+  de:'Anything on the body or in the hair that could stop the water from touching the skin, such as dirt, glue, nail polish, loose threads, knots in the hair, or a bandage. All of it must be removed before immersion (ask a Rav about wounds).',
+  dh:'כל דבר על הגוף או בשיער שיכול למנוע מהמים לגעת בעור, כמו לכלוך, דבק, לק, חוטים, קשרים בשיער או פלסטר. צריך להסיר הכול לפני הטבילה (בפצעים יש לשאול מורה הוראה).'},
+ mikvah:{e:'Mikvah and tevilah (מקווה וטבילה)',h:'מקווה וטבילה',
+  de:'The mikvah is the ritual bath. Tevilah is the immersion itself: one full dip so the whole body and hair are under the water. It is done at night, after the 7th clean day has ended, and it ends the niddah status.',
+  dh:'המקווה הוא הבריכה לטבילה. הטבילה היא טבילה מלאה שבה כל הגוף והשיער מתחת למים. עושים אותה בלילה, אחרי שהיום השביעי נגמר, והיא מסיימת את מצב הנדה.'},
+ mikvahNight:{e:'Mikvah night (ליל טבילה)',h:'ליל טבילה',
+  de:'The first night after the 7 clean days are over. It is right to immerse that night unless it is not possible. If it falls on Shabbat, Yom Kippur or Tisha B’Av there are special rules, and the app shows a warning.',
+  dh:'הלילה הראשון אחרי שבעת הנקיים. כדאי לטבול באותו לילה, אלא אם אי אפשר. אם הוא חל בשבת, ביום כיפור או בתשעה באב יש דינים מיוחדים, והאפליקציה מזהירה.'},
+ onah:{e:'Onah (עונה)',h:'עונה',
+  de:'A half-day period: the night (from sunset until sunrise) or the day (from sunrise until sunset). The law notes which onah a period began in, because the next expected times are kept by onah.',
+  dh:'חצי יום: הלילה (משקיעה עד הנץ החמה) או היום (מהנץ החמה עד השקיעה). ההלכה רושמת באיזו עונה התחילה הראיה, כי את הזמנים הבאים שומרים לפי עונות.'},
+ veset:{e:'Veset / onot (וסת, עונות)',h:'וסת ועונות',
+  de:'The times when a woman expects her next period. At those times she and her husband keep apart as a precaution, as her Rav explains. The app shows them as “days to be careful”.',
+  dh:'הזמנים שבהם אשה מצפה לראיה הבאה. בזמנים אלה בני הזוג נפרדים לשם זהירות, כפי שמסביר מורה ההוראה. האפליקציה מציגה אותם כ"עונות לשמירה".'},
+ vesetKavua:{e:'Established veset (וסת קבוע)',h:'וסת קבוע',
+  de:'A pattern that repeated enough times in a row to count as fixed: the same Hebrew date three months in a row, or the same number of days between periods three times in a row. An established veset stays in force until it is uprooted: three times in a row at its time without her seeing. While it is in force only the established veset is kept. The number of times can be changed in Settings. Ask your Rav.',
+  dh:'דפוס שחזר מספיק פעמים ברצף כדי להיחשב קבוע: אותו תאריך עברי שלושה חודשים ברצף, או אותו מרווח ימים בין ראיות שלוש פעמים ברצף. וסת קבוע נשאר בתוקף עד שנעקר: שלוש פעמים ברצף בזמנו בלי שראתה. כל עוד הוא בתוקף שומרים רק אותו. אפשר לשנות את המספר בהגדרות. יש לשאול מורה הוראה.'},
+ yomHachodesh:{e:'Yom hachodesh (יום החודש)',h:'יום החודש',
+  de:'The same Hebrew date as when the last period started, in the next month. For example, if it started on the 10th of the Hebrew month, the 10th of next month is a day to be careful. If it started on the 30th and next month has only 29 days, the sefer says to keep the 30th of the following month.',
+  dh:'אותו תאריך עברי שבו התחילה הראיה האחרונה, בחודש הבא. למשל: התחילה בעשירי לחודש העברי, ולכן העשירי בחודש הבא הוא יום לשמירה. אם התחילה ב-30 ובחודש הבא יש רק 29 ימים, לפי הספר שומרים את יום 30 בחודש שאחריו.'},
+ haflagah:{e:'Haflagah (הפלגה)',h:'הפלגה',
+  de:'The same number of days between periods as last time. For example, if the last two periods began 29 days apart, count another 29 days from the last start.',
+  dh:'אותו מספר ימים בין ראיה לראיה כמו בפעם הקודמת. למשל: שתי הראיות האחרונות התחילו בהפרש של 29 ימים, ולכן סופרים עוד 29 ימים מהראיה האחרונה.'},
+ onat:{e:'Day 30 and day 31 (עונה בינונית)',h:'יום 30 ויום 31',
+  de:'Counting the first day of the last period as day 1, day 30 is a day to be careful even if there is no pattern. Some are careful for the whole date (the night and the day), and some say it is day 31, so by default the app keeps both days, night and day. You can change this in Settings.',
+  dh:'כשסופרים את היום הראשון של הראיה האחרונה כיום 1, יום 30 הוא יום לשמירה גם אם אין דפוס. יש השומרים את כל התאריך (הלילה והיום), ויש אומרים שזה יום 31; לכן ברירת המחדל באפליקציה שומרת את שני הימים, לילה ויום. אפשר לשנות בהגדרות.'},
+ ketem:{e:'Ketem (כתם)',h:'כתם',
+  de:'A stain of blood found on clothing, bedding or the body. Whether it makes her niddah depends on its colour, size and where it was found. The app cannot decide this. Show it to a Rav.',
+  dh:'כתם דם שנמצא על בגד, על מצעים או על הגוף. אם הוא מטמא תלוי בצבע, בגודל ובמקום שבו נמצא. האפליקציה לא יכולה להחליט זאת. יש להראות אותו למורה הוראה.'},
+ rav:{e:'Rav / Mora Hora’ah (רב, מורה הוראה)',h:'רב ומורה הוראה',
+  de:'A rabbi who has studied the laws of family purity and can answer questions about them. The app only does the calendar; the Rav decides what is allowed.',
+  dh:'רב שלמד את דיני טהרת המשפחה ויכול לענות על שאלות. האפליקציה עושה רק את חישוב התאריכים; הרב קובע מה מותר.'},
+ minhag:{e:'Minhag (מנהג)',h:'מנהג',
+  de:'A family or community custom, for example how many days to wait before the clean check. If you are not sure, ask your Rav which custom to follow.',
+  dh:'נוהג של משפחה או קהילה, למשל כמה ימים ממתינים לפני הפסק טהרה. אם לא בטוחים, שואלים את הרב איזה מנהג לקיים.'},
+ shabbatTerms:{e:'Erev Shabbat and Motzei Shabbat (ערב שבת, מוצאי שבת)',h:'ערב שבת ומוצאי שבת',
+  de:'Erev Shabbat is Friday, before Shabbat begins. Motzei Shabbat is Saturday night, after Shabbat has ended.',
+  dh:'ערב שבת הוא יום שישי, לפני שהשבת נכנסת. מוצאי שבת הוא ליל ראשון, אחרי שהשבת יצאה.'},
+ fastDays:{e:'Yom Kippur and Tisha B’Av (יום כיפור, תשעה באב)',h:'יום כיפור ותשעה באב',
+  de:'Fast days. According to the sefer, immersion in the mikvah is not allowed on the night a fast begins, so the app tells her to wait one more night.',
+  dh:'ימי צום. לפי הספר, בלילה שבו מתחיל הצום אסור לטבול במקווה, ולכן האפליקציה אומרת לחכות עוד לילה.'}
+};
+
+let S = load();
+let locResults=[], locMsg='', locQueryText='', locCoordsOpen=false, glossOpen={};
+function detectLang(){let l='en';try{l=String((navigator.languages&&navigator.languages[0])||navigator.language||'en').toLowerCase();}catch(_){}return (l.startsWith('he')||l.startsWith('iw'))?'he':'en';}
+function guessPreset(){let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone;}catch(_){}const k=Object.keys(PRESETS).find(x=>x!=='custom'&&PRESETS[x].tz===tz);return k||'amsterdam';}
+function defaults(){const gk=guessPreset(),GP=PRESETS[gk];return {lang:detectLang(),selected:null,periods:[],settings:{minDays:5,include31:true,kavuaTimes:3,preset:gk,placeName:'',locationSet:false,lat:GP.lat,lon:GP.lon,tz:GP.tz,tzeit:40,dawnMin:0,beinonitBoth:true,status:'none',discreet:true}};}
+function load(){try{const x=JSON.parse(localStorage.getItem(STORE));if(x&&x.settings){if(x.settings.minDays==null&&x.settings.minhag==='seph')x.settings.minDays=4;if(x.settings.placeName==='Amsterdam, Netherlands'&&x.settings.preset==='amsterdam')x.settings.placeName='';return Object.assign(defaults(),x,{settings:Object.assign(defaults().settings,x.settings)});}}catch(e){}return defaults();}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
+const t = k => (I18N[S.lang]&&I18N[S.lang][k]) || I18N.en[k] || k;
+const $ = id => document.getElementById(id);
+const gname = k => (S.lang==='he'?GL[k].h:GL[k].e);
+const gdesc = k => (S.lang==='he'?GL[k].dh:GL[k].de);
+const gid = (k,s) => k+'@'+s;
+function qbtn(k,s){const id=gid(k,s);return `<button type="button" class="q" data-act="gloss" data-k="${id}" aria-expanded="${glossOpen[id]?'true':'false'}" aria-label="${esc(t('whatIs')+' '+gname(k))}">?</button>`;}
+function gbox(k,s){const id=gid(k,s);return `<div class="gl" data-g="${id}" ${glossOpen[id]?'':'hidden'}><b>${esc(gname(k))}</b><div>${esc(gdesc(k))}</div><button type="button" class="ghost small" data-act="glossAll">${t('glossAllBtn')}</button></div>`;}
+function glossaryHTML(){return `<details class="card" id="glossBox"><summary>${t('glossary')}</summary>${Object.keys(GL).map(k=>`<div class="gl-item"><b>${esc(gname(k))}</b><div>${esc(gdesc(k))}</div></div>`).join('')}</details>`;}
+function guideHTML(){return `<div class="card guide"><h2>${t('guideTitle')}</h2><ol style="padding-inline-start:22px;margin:6px 0">${['g1','g2','g3','g4'].map(k=>`<li style="margin:6px 0">${t(k)}</li>`).join('')}</ol><button class="ghost small" data-act="hideGuide">${t('gHide')}</button></div>`;}
+const pname = k => {const p=PRESETS[k];return p?((S&&S.lang==='he'&&p.h)?p.h:p.n):'';};
+const esc = x => String(x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtC = d => L.civilFormat(d,S.lang);
+const fmtH = d => L.hebFormat(d,S.lang);
+function sunsetFor(d){ // civil Date -> {local:'HH:MM', tzeit:'HH:MM'} or null
+  const s=S.settings;const ss=L.sunsetUTC(L.toISO(d),+s.lat,+s.lon);
+  if(!ss)return null;
+  return {local:L.fmtTime(ss,s.tz,'en'),tzeit:L.fmtTime(new Date(ss.getTime()+(+s.tzeit||0)*60000),s.tz,'en'),utc:ss};
 }
-function startShouldAsk(){
-  if (S.mode !== 'auto') return false;
-  if (S.askAlways) return true;
-  const d = new Date(), L = S.learn[d.getDay() + '-' + d.getHours()] || {y:0, n:0};
-  return inSchedule(d) || (L.y >= 2 && L.y > L.n);
+function sorted(){return L.sortedPeriods(S.periods);}
+function sel(){const l=sorted();if(!l.length)return -1;let i=l.findIndex(p=>p.id===S.selected);return i<0?l.length-1:i;}
+
+function tzOffsetHours(tz,date){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'}).formatToParts(date);
+  const g=k=>+parts.find(p=>p.type===k).value;
+  return (Date.UTC(g('year'),g('month')-1,g('day'),g('hour'),g('minute'),g('second'))-Math.floor(date.getTime()/1000)*1000)/3600000;
 }
-function startPrompt(){
-  tripKids = null; tripExc = false; startAsked = false; clearTimeout(startTimer);
-  if (!startShouldAsk()) return;
-  startAsked = true;
-  playChime();
-  log('Asked at the start: child in the car? routine or exceptional?');
-  startTimer = setTimeout(() => {
-    if (st === 'driving' && tripKids === null){
-      speakText('Is ' + (S.child || 'your child') + ' in the car? Please tell the app.');
-      log('No answer yet. I will check again when you park.');
-    }
-  }, 45000 / S.speed);
+function tzLooksWrong(lon,tz){
+  try{return Math.abs(tzOffsetHours(tz,new Date())-(+lon)/15)>3.2;}catch(_){return false;}
 }
-function setTripKids(v){
-  tripKids = v; clearTimeout(startTimer);
-  log(v === 'yes' ? 'Answered: child aboard' : 'Answered: no child on this trip');
+function locationCardHTML(){
+  const s=S.settings;
+  const place=s.placeName==='@gps'?t('placeGps'):(s.placeName||((PRESETS[s.preset]&&s.preset!=='custom')?pname(s.preset):t('placeCoords')));
+  let todayISO;try{todayISO=new Intl.DateTimeFormat('en-CA',{timeZone:s.tz}).format(new Date());}catch(_){todayISO=L.toISO(new Date());}
+  const sr=L.sunriseUTC(todayISO,+s.lat,+s.lon), ss=L.sunsetUTC(todayISO,+s.lat,+s.lon);
+  const f=(d,off)=>d?L.fmtTime(new Date(d.getTime()+off*60000),s.tz,'en'):'—';
+  let h=`<div class="card"><h2>${t('location')}</h2>`;
+  if(!s.locationSet)h+=`<div class="warn">${esc(t('locNotSet').replace('{place}',place))}</div>`;
+  if(tzLooksWrong(s.lon,s.tz))h+=`<div class="warn">${esc(t('tzMismatch').replace('{tz}',s.tz))}</div>`;
+  h+=`<div class="v">${esc(place)}</div><div class="sub"><span dir="ltr">${(+s.lat).toFixed(3)}, ${(+s.lon).toFixed(3)} · ${esc(s.tz)}</span></div>`;
+  h+=`<div class="sub times">${t('todayTimes')}: ${(+s.dawnMin||0)>0?t('dawnL')+' '+f(sr,-(+s.dawnMin))+' · ':''}${t('sunriseL')} ${f(sr,0)} · ${t('sunsetL')} ${f(ss,0)} · ${t('nightfallL')} ${f(ss,+s.tzeit||0)}</div>`;
+  h+=`<div class="sub">${t('dayNightHelp')} ${qbtn('sunset','loc')}${qbtn('bein','loc')}</div>${gbox('sunset','loc')}${gbox('bein','loc')}`;
+  h+=`<div class="row" style="align-items:end"><div style="flex:3"><label for="locQuery">${t('locSearchLabel')}</label><input type="text" id="locQuery" autocomplete="off" placeholder="${esc(t('locSearchPh'))}" value="${esc(locQueryText)}"></div><div style="flex:0 0 auto;min-width:0"><button data-act="locSearch">${t('locSearch')}</button></div></div>`;
+  if(locMsg)h+=`<div class="sub" style="margin-top:6px">${esc(locMsg)}</div>`;
+  locResults.forEach((r,i)=>{h+=`<button class="ghost res" data-act="locPick" data-i="${i}">${esc([r.name,r.admin,r.country].filter(Boolean).join(', '))} <span class="k">(${r.lat.toFixed(2)}, ${r.lon.toFixed(2)})</span></button>`;});
+  h+=`<p style="margin:10px 0 4px"><button class="ghost small" data-act="gps">${t('gps')}</button></p>`;
+  h+=`<details id="coordsBox" ${locCoordsOpen?'open':''}><summary>${t('coords')}</summary>
+    <div class="row"><div><label for="lat">${t('lat')}</label><input type="number" step="any" id="lat" value="${s.lat}"></div><div><label for="lon">${t('lon')}</label><input type="number" step="any" id="lon" value="${s.lon}"></div><div><label for="tz">${t('tz')}</label><input type="text" id="tz" value="${esc(s.tz)}"></div></div>
+    <label for="preset">${t('common')}</label><select id="preset"><option value="">—</option>${Object.keys(PRESETS).filter(k=>k!=='custom').map(k=>`<option value="${k}">${esc(pname(k))}</option>`).join('')}</select></details>`;
+  h+=`<div class="k" style="margin-top:8px">${t('locPrivacy')}</div></div>`;
+  return h;
+}
+async function doSearch(){
+  const el=$('locQuery');const q=((el&&el.value)||locQueryText||'').trim();locQueryText=q;
+  if(q.length<2)return;
+  locMsg=t('searching');locResults=[];render();
+  try{
+    const ctl=(typeof AbortController!=='undefined')?new AbortController():null;
+    const timer=ctl?setTimeout(()=>ctl.abort(),10000):null;
+    const lang=S.lang==='he'?'he':'en';
+    const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=8&language='+lang+'&format=json',ctl?{signal:ctl.signal}:{});
+    if(timer)clearTimeout(timer);
+    if(!r.ok)throw new Error('http '+r.status);
+    const j=await r.json();
+    locResults=(j.results||[]).filter(x=>isFinite(x.latitude)&&isFinite(x.longitude)).map(x=>({name:x.name||'',admin:x.admin1||'',country:x.country||'',lat:+x.latitude,lon:+x.longitude,tz:x.timezone||''}));
+    locMsg=locResults.length?'':t('noResults');
+  }catch(e){locResults=[];locMsg=t('searchFail');}
   render();
 }
-function setTripExc(v){
-  tripExc = v;
-  log(v ? 'Marked as an exceptional drive: extra care is on' : 'Marked as a routine drive');
-  if (v && S.exTell){
-    publish({title:'Heads up', message:'Exceptional drive today' + (S.me ? ' (' + S.me + ' is driving)' : '') + (S.child ? ' with ' + S.child : '') + '. Extra checks are on.', priority:3, tags:['information_source']})
-      .then(ok => { if (!ok) log('Could not reach the family channel'); });
+function render(){
+  const he=S.lang==='he';
+  document.title=t('title');
+  document.documentElement.lang=S.lang;document.documentElement.dir=he?'rtl':'ltr';
+  const s=S.settings, list=sorted(), si=sel();
+  let h='';
+  h+=`<header><h1>${t('title')} ${qbtn('niddah','h')}</h1><div class="lang"><button class="ghost small" data-act="lang" data-v="${he?'en':'he'}">${he?'English':'עברית'}</button></div></header>${gbox('niddah','h')}`;
+  h+=`<div class="disc">${t('disc')} ${t('stain')} ${qbtn('ketem','d')}${qbtn('rav','d')}<br><span class="k">${t('privacy')}</span></div>${gbox('ketem','d')}${gbox('rav','d')}`;
+  if(!S.hideGuide)h+=guideHTML();
+
+  h+=locationCardHTML();
+  // new period
+  const today=L.toISO(new Date(new Date().getTime()));
+  h+=`<div class="card"><h2>${t('newPeriod')}</h2>
+   <div class="row"><div><label for="onsetDate">${t('onsetDate')}</label><input type="date" id="onsetDate" value="${today}"></div>
+   <div><label for="onsetTime">${t('onsetTime')}</label><input type="time" id="onsetTime"></div></div>
+   <div class="seg"><label><input type="radio" name="onah" value="day" checked> ${t('onahDay')}</label><label><input type="radio" name="onah" value="bein"> ${t('onahBein')}</label><label><input type="radio" name="onah" value="night"> ${t('onahNight')}</label></div>
+   <div class="sub">${t('helpWords')} ${qbtn('bein','np')}${qbtn('day','np')}</div>${gbox('bein','np')}${gbox('day','np')}
+   <div id="msg" class="sub"></div>
+   <p><button data-act="add">${t('calc')}</button></p></div>`;
+
+  // results
+  if(si>=0){
+    const p=list[si];
+    h+=resultsHTML(p,si,list);
   }
-  render();
-}
-function initTrip(){
-  $('mode').value = S.mode; $('mode').onchange = e => { S.mode = e.target.value; save(); render(); };
-  $('askAlways').checked = S.askAlways; $('askAlways').onchange = e => { S.askAlways = e.target.checked; save(); };
-  $('exTell').checked = S.exTell; $('exTell').onchange = e => { S.exTell = e.target.checked; save(); };
+
+  // history
+  h+=`<div class="card"><h2>${t('history')}</h2>`;
+  if(!list.length)h+=`<div class="sub">${t('none')}</div>`;
+  list.slice().reverse().forEach(p=>{
+    const hd=L.halachicDate(p);const idx=list.indexOf(p);
+    h+=`<div class="hist ${idx===si?'sel':''}"><div>${fmtC(L.parseISO(p.onsetISO))} · ${p.night?t('nightOnah'):(p.bein?t('beinOnah'):t('dayOnah'))}<div class="sub">${fmtH(hd)}</div></div><div><button class="ghost small" data-act="view" data-id="${p.id}">${t('view')}</button> <button class="danger small" data-act="del" data-id="${p.id}">${t('del')}</button></div></div>`;
+  });
+  if(list.length){h+=`<p style="margin-top:12px"><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="discreet" ${s.discreet?'checked':''}> ${t('discreet')}</label><button class="ghost" data-act="ics">${t('export')}</button></p>`;}
+  h+=`</div>`;
+
+  h+=glossaryHTML();
+  // settings
+  h+=`<details class="card" id="settingsBox"><summary>${t('settings')}</summary>
+   <label for="minDays">${t('minDays')} ${qbtn('fiveDays','s')}${qbtn('minhag','s')}</label>${gbox('fiveDays','s')}${gbox('minhag','s')}<select id="minDays">${[5,4,6,7].map(n=>`<option value="${n}" ${(+s.minDays||5)===n?'selected':''}>${t('d'+n)}</option>`).join('')}</select>
+   <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="inc31" ${s.include31?'checked':''}> ${t('include31')}</label>
+   <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="incBoth" ${s.beinonitBoth!==false?'checked':''}> ${t('beinonitBoth')}</label>
+   <label for="kt">${t('kavuaTimes')}</label><input type="number" id="kt" min="2" max="5" value="${s.kavuaTimes}">
+   <label for="status">${t('status')}</label><select id="status">${[['none','sNone'],['preg1','sPreg1'],['preg','sPreg'],['nurs','sNurs'],['nurs2','sNurs2'],['post','sPost'],['old','sOld']].map(([v,k])=>`<option value="${v}" ${s.status===v?'selected':''}>${t(k)}</option>`).join('')}</select>
+   <label for="tzeit">${t('tzeit')}</label><input type="number" id="tzeit" min="0" max="120" value="${s.tzeit}">
+   <label for="dawnMin">${t('dawnMin')}</label><input type="number" id="dawnMin" min="0" max="120" value="${s.dawnMin}">
+   ${S.hideGuide?`<p><button class="ghost small" data-act="showGuide">${t('gShow')}</button></p>`:''}
+   <p><button class="danger small" data-act="clear">${t('clear')}</button></p></details>`;
+  h+=`<div class="foot">${t('rule')}${t('ruleN').replace('{n}',+s.minDays||5)}<br>${t('source')}</div>`;
+  $('app').innerHTML=h;
 }
 
-// ---------- child tag (optional) ----------
-let tw, lostTimer, rcTimer, tagDev = null, tagPresent = false, tagAboard = false, dw = 0;
-
-function updTag(){
-  $('tagState').textContent = !S.tag ? 'Tag feature off' : (tagPresent ? 'Tag: in range' : 'Tag: not seen');
-}
-function tagAlarm(){
-  if (st !== 'watching') return;
-  clearTimeout(tw);
-  log('Tag lost for 20 seconds right after parking: child may be left in the car');
-  ask(true);
-}
-function setTag(v){
-  if (v === tagPresent) return;
-  tagPresent = v; updTag();
-  if (!S.tag) return;
-  log(v ? 'Child tag in range' : 'Child tag out of range');
-  if (v){ clearTimeout(lostTimer); if (st === 'driving') tagAboard = true; }
-  else if (st === 'watching'){ clearTimeout(lostTimer); lostTimer = setTimeout(tagAlarm, 20000 / S.speed); }
-}
-async function connectTag(){
-  if (!tagDev) return;
-  try {
-    const srv = await tagDev.gatt.connect();
-    setTag(true);
-    try {
-      const sv = await srv.getPrimaryService('battery_service');
-      const ch = await sv.getCharacteristic('battery_level');
-      const v = await ch.readValue();
-      $('tagBat').textContent = 'battery ' + v.getUint8(0) + '%';
-    } catch (e) {}
-  } catch (e) { setTag(false); }
-}
-function tryReconnect(){
-  clearTimeout(rcTimer);
-  rcTimer = setTimeout(async () => { if (tagDev && !tagPresent){ await connectTag(); if (!tagPresent) tryReconnect(); } }, 3000);
-}
-async function pairTag(){
-  if (!navigator.bluetooth){ log('Bluetooth pairing is not supported in this browser. Use Chrome on Android, or the simulator buttons.'); return; }
-  try {
-    tagDev = await navigator.bluetooth.requestDevice({acceptAllDevices:true, optionalServices:['battery_service']});
-    tagDev.addEventListener('gattserverdisconnected', () => { setTag(false); tryReconnect(); });
-    log('Tag selected: ' + (tagDev.name || 'unnamed device'));
-    await connectTag();
-  } catch (e) { log('Tag pairing: ' + e.message); }
-}
-function initTag(){
-  $('tagOn').checked = S.tag;
-  $('tagOn').onchange = e => { S.tag = e.target.checked; save(); updTag(); log(S.tag ? 'Child tag feature on' : 'Child tag feature off'); };
-  $('bTagIn').onclick = () => setTag(true);
-  $('bTagOut').onclick = () => setTag(false);
-  $('bTagPair').onclick = pairTag;
-  updTag();
+function onahLine(date,o){
+  const thr=t((+S.settings.dawnMin||0)>0?'throughDawn':'through');
+  if(o==='both'){const st=L.onahStartCivil(date,'both');return `${t('bothOnah')}: ${t('nightFrom')} ${fmtC(st)} ${t('untilSunset')} ${fmtC(date)} <span class="sub">(${fmtH(date)})</span>`;}
+  if(o==='night'){const st=L.onahStartCivil(date,'night');return `${t('nightOnah')}: ${t('nightFrom')} ${fmtC(st)} ${thr} <span class="sub">(${fmtH(date)})</span>`;}
+  return `${t('dayOnah')}: ${fmtC(date)} <span class="sub">(${fmtH(date)})</span>`;
 }
 
-updSound();
+function checklistHTML(){
+  return `<details class="card"><summary>${t('checklist')}</summary><ul style="padding-inline-start:20px;margin:8px 0 0">${['c1','c2','c3','c4','c5','c6','c7'].map(k=>`<li style="margin:6px 0">${t(k)}</li>`).join('')}</ul></details>`;
+}
+function resultsHTML(p,si,list){
+  const s=S.settings;
+  const plan=L.purityPlan(p,+s.minDays||5);
+  let h=`<div class="card"><h2>${t('results')}</h2>`;
+  plan.warnings.forEach(w=>{
+    const map={hefsekTooEarly:'wTooEarly',hefsekAfterSunset:'wAfter',mikvahShabbat:'wShabbat',mikvahMotzeiShabbat:'wMotzSh',beinHashmashos:'wBein',hefsekErevShabbat:'wErevShabbat',mikvahYK:'wYK',mikvahTB:'wTB'};
+    let txt=t(map[w]);
+    if(w==='beinHashmashos'&&plan.alt)txt+=' '+t('wBeinAlt').replace('{h}',fmtC(plan.alt.earliestHefsek)).replace('{m}',fmtC(plan.alt.mikvahEvening));
+    const wg={hefsekErevShabbat:'shabbatTerms',mikvahShabbat:'shabbatTerms',mikvahMotzeiShabbat:'shabbatTerms',mikvahYK:'fastDays',mikvahTB:'fastDays',beinHashmashos:'bein',hefsekAfterSunset:'sunset'}[w];
+    h+=`<div class="warn">${txt}${wg?' '+qbtn(wg,'w_'+w):''}</div>${wg?gbox(wg,'w_'+w):''}`;});
+  const ssH=sunsetFor(plan.hefsek), ssM=sunsetFor(plan.mikvahEvening);
+  h+=`<ul class="timeline">`;
+  h+=`<li><div class="k">${t('day1')} ${qbtn('day','r')}</div>${gbox('day','r')}<div class="v">${fmtC(plan.day1)}</div><div class="sub">${fmtH(plan.day1)}</div></li>`;
+  h+=`<li><div class="k">${t('earliest')} ${qbtn('fiveDays','r')}${qbtn('hefsek','r')}</div>${gbox('fiveDays','r')}${gbox('hefsek','r')}<div class="v">${fmtC(L.addDays(plan.day1,(+s.minDays||5)-1))}</div><div class="sub">${t('beforeSunset')}${sunsetFor(L.addDays(plan.day1,(+s.minDays||5)-1))?' ('+t('sunsetAt')+' '+sunsetFor(L.addDays(plan.day1,(+s.minDays||5)-1)).local+')':''}</div></li>`;
+  h+=`<li><div class="k">${t('hefsekDone')} ${qbtn('moch','r')}</div>${gbox('moch','r')}<div class="row" style="align-items:end"><input type="date" id="hefsekDate" value="${p.hefsekISO||''}"><label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--ink)"><input type="checkbox" id="hefsekAfter" ${p.hefsekAfterSunset?'checked':''}> ${t('hefsekAfter')}</label><button class="ghost small" data-act="hefsek" data-id="${p.id}">${t('saveHefsek')}</button></div><div class="sub" style="margin-top:6px">${t('hefsekTip')}</div></li>`;
+  h+=`<li><div class="k">${t('cleanDays')} ${qbtn('shiva','r')}${qbtn('bedikah','r')}</div>${gbox('shiva','r')}${gbox('bedikah','r')}<div class="v">${fmtC(plan.firstClean)} → ${fmtC(plan.lastClean)}</div></li>`;
+  h+=`<li><div class="k">${t('mikvah')} ${qbtn('mikvahNight','r')}${qbtn('mikvah','r')}${qbtn('chafifa','r')}${qbtn('chatzitzah','r')}</div>${gbox('mikvahNight','r')}${gbox('mikvah','r')}${gbox('chafifa','r')}${gbox('chatzitzah','r')}<div class="v">${t('eveningOf')} ${fmtC(plan.mikvahEvening)}</div><div class="sub">${t('afterNightfall')}${ssM?' ('+t('sunsetAt')+' '+ssM.local+', '+t('nightfall')+' '+ssM.tzeit+')':''}<br>${t('hebDateBegins')}: ${fmtH(L.addDays(plan.mikvahEvening,1))}</div></li>`;
+  h+=`</ul></div>`;
+
+  h+=`<div class="card"><h2>${t('calTitle')}</h2><div id="calBox">${calHTML()}</div></div>`;
+  h+=checklistHTML();
+  // onot
+  if(s.status!=='none'&&STATUS_NOTE[s.status])h+=`<div class="warn">${t(STATUS_NOTE[s.status])}</div>`;
+  const on=onotFor(si);
+  if(on){
+    h+=`<div class="card"><h2>${t('onot')} ${qbtn('veset','o')}${qbtn('onah','o')}</h2>${gbox('veset','o')}${gbox('onah','o')}`;
+    if(on.some(o=>o.kavua))h+=`<div class="sub" style="margin:6px 0">${t('kavuaNote')}</div>`;
+    h+=`<ul class="timeline">`;
+    on.forEach(o=>{
+      let lab=t(o.kind);
+      if(o.interval)lab+=` (${t('interval')}: ${o.interval} ${t('days')})`;
+      const gk={yomHachodesh:'yomHachodesh',yomHachodeshEarlier:'yomHachodesh',kavuaChodesh:'vesetKavua',kavuaHaflagah:'vesetKavua',onat30:'onat',onat31:'onat',haflagah:'haflagah',haflagahEarlier:'haflagah'}[o.kind];
+      const kb=o.kavua&&gk!=='vesetKavua';
+      h+=`<li><div class="k">${lab}${o.kavua?`<span class="tag">${t('kavua')}</span>`:''} ${qbtn(gk,'o_'+o.kind)}${kb?qbtn('vesetKavua','ok_'+o.kind):''}</div>${gbox(gk,'o_'+o.kind)}${kb?gbox('vesetKavua','ok_'+o.kind):''}<div class="v">${onahLine(o.date,o.onah)}</div>${o.note==='day30'?`<div class="warn">${t('wDay30')}</div>`:''}</li>`;
+    });
+    h+=`</ul><details class="sub"><summary>${t('tipsTitle')}</summary><ul style="padding-inline-start:20px;margin:8px 0 0">${['tip1','tip2','tip3','tip4','tip5'].map(k=>`<li style="margin:6px 0">${t(k)}</li>`).join('')}</ul></details></div>`;
+  }
+  h+=`<div class="card"><h2>${t('repHead')}</h2><div class="sub">${t('repHelp')}</div><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="repShort" ${repShort?'checked':''}> ${t('repShort')}</label><div class="row"><button data-act="repPdf">${t('repPdf')}</button><button class="ghost" data-act="repDocx">${t('repWord')}</button></div></div>`;
+  return h;
+}
+
+// ---------- calendar (month view) ----------
+let calMonth=null,calFor=null,calSel=null;
+function calGem(n){
+  const O=['','א','ב','ג','ד','ה','ו','ז','ח','ט'],T=['','י','כ','ל'];
+  let r=n===15?'טו':n===16?'טז':T[Math.floor(n/10)]+O[n%10];
+  return r.length>1?r.slice(0,-1)+'״'+r.slice(-1):r+'׳';
+}
+function calHebDay(d){const n=L.hebParts(d).day;return S.lang==='he'?calGem(n):String(n);}
+function calEvents(list,si,plan){
+  const ev={},add=(d,k,x)=>{const i=L.toISO(d);(ev[i]=ev[i]||[]).push({k,x});};
+  const onahName=q=>q.night?t('nightOnah'):(q.bein?t('beinOnah'):t('dayOnah'));
+  list.forEach(q=>add(L.parseISO(q.onsetISO),'period',`${t('calPeriod')} · ${onahName(q)}`));
+  const p=list[si];
+  if(p.hefsekISO)add(plan.hefsek,'hefsek',t('calHefsek')+(p.hefsekAfterSunset?' ('+t('hefsekAfter')+')':''));
+  else add(plan.earliestHefsek,'hefsek',t('calEarliest'));
+  for(let i=0;i<7;i++)add(L.addDays(plan.firstClean,i),'clean',t('calClean').replace('{n}',i+1));
+  add(plan.mikvahEvening,'mikvah',`${t('mikvah')}: ${t('eveningOf')} ${fmtC(plan.mikvahEvening)}`);
+  (onotFor(si)||[]).forEach(o=>{
+    const x=`${t(o.kind)}${o.interval?` (${t('interval')}: ${o.interval} ${t('days')})`:''} — ${onahText(o.date,o.onah)}`;
+    const st=L.onahStartCivil(o.date,o.onah);
+    add(o.date,'onah',x);
+    if(L.toISO(st)!==L.toISO(o.date))add(st,'onah',x);
+  });
+  return ev;
+}
+function calHTML(){
+  const list=sorted(),si=sel();if(si<0)return '';
+  const p=list[si],plan=L.purityPlan(p,+S.settings.minDays||5),he=S.lang==='he';
+  if(calFor!==p.id||!calMonth){calMonth={y:plan.day1.getUTCFullYear(),m:plan.day1.getUTCMonth()};calFor=p.id;calSel=null;}
+  const ev=calEvents(list,si,plan);
+  let todayISO;try{todayISO=new Intl.DateTimeFormat('en-CA',{timeZone:S.settings.tz}).format(new Date());}catch(_){todayISO=L.toISO(new Date());}
+  const y=calMonth.y,m=calMonth.m,first=new Date(Date.UTC(y,m,1,12)),dim=new Date(Date.UTC(y,m+1,0,12)).getUTCDate();
+  const last=new Date(Date.UTC(y,m,dim,12));
+  const gm=new Intl.DateTimeFormat(he?'he-IL':'en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(first);
+  const hm=new Intl.DateTimeFormat(he?'he-u-ca-hebrew':'en-u-ca-hebrew-nu-latn',{month:'long',year:'numeric',timeZone:'UTC'});
+  const h1=hm.format(first),h2=hm.format(last);
+  const wd=new Intl.DateTimeFormat(he?'he-IL':'en-GB',{weekday:'short',timeZone:'UTC'});
+  let h=`<div class="calh"><button class="ghost" data-act="calPrev" aria-label="${esc(t('calPrev'))}">${he?'›':'‹'}</button><div class="t">${esc(gm)}<div class="sub">${esc(h1===h2?h1:h1+' – '+h2)}</div></div><button class="ghost" data-act="calNext" aria-label="${esc(t('calNext'))}">${he?'‹':'›'}</button></div>`;
+  h+=`<div class="calg">`;
+  for(let i=0;i<7;i++)h+=`<div class="calw">${esc(wd.format(new Date(Date.UTC(2026,9,11+i,12))))}</div>`;
+  for(let i=0;i<first.getUTCDay();i++)h+=`<div class="cald blank"></div>`;
+  for(let d=1;d<=dim;d++){
+    const dt=new Date(Date.UTC(y,m,d,12)),iso=L.toISO(dt),es=ev[iso]||[];
+    const kinds=[...new Set(es.map(e=>e.k))].filter(k=>k!=='clean');
+    const cls=['cald',dt.getUTCDay()===6?'sh':'',es.some(e=>e.k==='clean')?'clean':'',iso===todayISO?'today':'',iso===calSel?'sel':''].filter(Boolean).join(' ');
+    h+=`<button type="button" class="${cls}" data-act="calDay" data-iso="${iso}"><span>${d}</span><span class="h">${esc(calHebDay(dt))}</span><span class="dots">${kinds.map(k=>`<i class="dot ${k}"></i>`).join('')}</span></button>`;
+  }
+  h+=`</div><div style="margin-top:8px"><button class="ghost small" data-act="calToday">${t('calToday')}</button></div>`;
+  h+=`<div class="cal-legend"><span><i class="dot period"></i> ${t('lgPeriod')}</span><span><i class="dot hefsek"></i> ${t('lgHefsek')}</span><span><i class="dot clean"></i> ${t('lgClean')}</span><span><i class="dot mikvah"></i> ${t('lgMikvah')}</span><span><i class="dot onah"></i> ${t('lgOnah')}</span></div>`;
+  if(calSel){
+    const es=ev[calSel]||[],dd=L.parseISO(calSel);
+    h+=`<div class="cal-det"><b>${esc(fmtC(dd))}</b> <span class="sub">(${esc(fmtH(dd))})</span>${es.length?`<ul style="padding-inline-start:20px;margin:6px 0 0">${es.map(e=>`<li><i class="dot ${e.k}"></i> ${esc(e.x)}</li>`).join('')}</ul>`:`<div class="sub">${t('calNone')}</div>`}</div>`;
+  }else h+=`<div class="sub" style="margin-top:8px">${t('calHint')}</div>`;
+  return h;
+}
+function calRefresh(){const b=$('calBox');if(b)b.innerHTML=calHTML();}
+
+// ---------- report: PDF (print layout) and Word (.docx), all made on the device ----------
+let repShort=false;
+function onahText(date,o){
+  const thr=t((+S.settings.dawnMin||0)>0?'throughDawn':'through');
+  if(o==='both')return `${t('bothOnah')}: ${t('nightFrom')} ${fmtC(L.onahStartCivil(date,'both'))} ${t('untilSunset')} ${fmtC(date)} (${fmtH(date)})`;
+  if(o==='night')return `${t('nightOnah')}: ${t('nightFrom')} ${fmtC(L.onahStartCivil(date,'night'))} ${thr} (${fmtH(date)})`;
+  return `${t('dayOnah')}: ${fmtC(date)} (${fmtH(date)})`;
+}
+function reportModel(short){
+  const list=sorted(), si=sel(); if(si<0)return null;
+  const p=list[si], s=S.settings, plan=L.purityPlan(p,+s.minDays||5), B=[];
+  const yn=v=>t(v?'repYes':'repNo');
+  const onahName=q=>q.night?t('nightOnah'):(q.bein?t('beinOnah'):t('dayOnah'));
+  const place=s.placeName==='@gps'?t('placeGps'):(s.placeName||((PRESETS[s.preset]&&s.preset!=='custom')?pname(s.preset):t('placeCoords')));
+  const ssE=sunsetFor(plan.earliestHefsek), ssM=sunsetFor(plan.mikvahEvening);
+  let todayISO;try{todayISO=new Intl.DateTimeFormat('en-CA',{timeZone:s.tz}).format(new Date());}catch(_){todayISO=L.toISO(new Date());}
+  B.push({t:'h',x:t('repPeriod')});
+  B.push({t:'kv',rows:[
+    [t('repSeen'),`${fmtC(L.parseISO(p.onsetISO))} · ${onahName(p)}`],
+    [t('day1'),`${fmtC(plan.day1)} (${fmtH(plan.day1)})`]]});
+  B.push({t:'h',x:t('results')});
+  B.push({t:'kv',rows:[
+    [t('earliest'),`${fmtC(plan.earliestHefsek)}, ${t('beforeSunset')}${ssE?' ('+t('sunsetAt')+' '+ssE.local+')':''}`],
+    [t('hefsekDone'),p.hefsekISO?`${fmtC(L.parseISO(p.hefsekISO))}${p.hefsekAfterSunset?' ('+t('hefsekAfter')+')':''}`:'—'],
+    [t('cleanDays'),`${fmtC(plan.firstClean)} – ${fmtC(plan.lastClean)}`],
+    [t('mikvah'),`${t('eveningOf')} ${fmtC(plan.mikvahEvening)}, ${t('afterNightfall')}${ssM?' ('+t('nightfall')+' '+ssM.tzeit+')':''}. ${t('hebDateBegins')}: ${fmtH(L.addDays(plan.mikvahEvening,1))}`]]});
+  const wmap={hefsekTooEarly:'wTooEarly',hefsekAfterSunset:'wAfter',mikvahShabbat:'wShabbat',mikvahMotzeiShabbat:'wMotzSh',beinHashmashos:'wBein',hefsekErevShabbat:'wErevShabbat',mikvahYK:'wYK',mikvahTB:'wTB'};
+  plan.warnings.forEach(w=>{let x=t(wmap[w]);if(w==='beinHashmashos'&&plan.alt)x+=' '+t('wBeinAlt').replace('{h}',fmtC(plan.alt.earliestHefsek)).replace('{m}',fmtC(plan.alt.mikvahEvening));B.push({t:'p',c:'warn',x});});
+  if(!short){
+    const on=onotFor(si);
+    B.push({t:'h',x:t('onot')});
+    if(s.status!=='none'&&STATUS_NOTE[s.status])B.push({t:'p',x:t(STATUS_NOTE[s.status])});
+    if(on){
+      if(on.some(o=>o.kavua))B.push({t:'p',x:t('kavuaNote')});
+      B.push({t:'table',head:[t('repWhat'),t('repWhen')],rows:on.map(o=>[t(o.kind)+(o.interval?` (${t('interval')}: ${o.interval} ${t('days')})`:''),onahText(o.date,o.onah)])});
+      if(on.some(o=>o.note==='day30'))B.push({t:'p',c:'note',x:t('wDay30')});
+    }
+    B.push({t:'h',x:t('history')});
+    B.push({t:'table',head:[t('repDate'),t('repOnah'),t('repHebrew')],rows:list.slice().reverse().map(q=>[fmtC(L.parseISO(q.onsetISO)),onahName(q),fmtH(L.halachicDate(q))])});
+    B.push({t:'h',x:t('repSettings')});
+    B.push({t:'kv',rows:[
+      [t('repPlace'),`${place} (${(+s.lat).toFixed(3)}, ${(+s.lon).toFixed(3)} · ${s.tz})`],
+      [t('minDays'),String(+s.minDays||5)],
+      [t('repDayStart'),(+s.dawnMin||0)>0?t('repMinBefore').replace('{n}',+s.dawnMin):t('repSunrise')],
+      [t('tzeit'),String(+s.tzeit||0)],
+      [t('kavuaTimes'),String(s.kavuaTimes)],
+      [t('include31'),yn(s.include31!==false)],
+      [t('beinonitBoth'),yn(s.beinonitBoth!==false)],
+      [t('status'),t({none:'sNone',preg1:'sPreg1',preg:'sPreg',nurs:'sNurs',nurs2:'sNurs2',post:'sPost',old:'sOld'}[s.status]||'sNone')]]});
+  }
+  B.push({t:'p',c:'note',x:t('disc')});
+  B.push({t:'p',c:'note',x:t('source')});
+  return {title:t('repTitle'),sub:`${t('repMade')}: ${fmtC(L.parseISO(todayISO))}`,blocks:B};
+}
+function reportHTML(m){
+  let h=`<h1>${esc(m.title)}</h1><div class="rsub">${esc(m.sub)}</div>`;
+  m.blocks.forEach(b=>{
+    if(b.t==='h')h+=`<h2>${esc(b.x)}</h2>`;
+    else if(b.t==='p')h+=`<p class="${b.c||''}">${esc(b.x)}</p>`;
+    else if(b.t==='kv')h+=`<table class="rkv">${b.rows.map(r=>`<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join('')}</table>`;
+    else if(b.t==='table')h+=`<table><thead><tr>${b.head.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  });
+  return h;
+}
+// --- minimal .docx writer (zip with stored entries) ---
+function crc32(buf){if(!crc32.t){crc32.t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;crc32.t[n]=c>>>0;}}let crc=-1;for(let i=0;i<buf.length;i++)crc=crc32.t[(crc^buf[i])&255]^(crc>>>8);return(crc^-1)>>>0;}
+function zipStore(files,mime){
+  const enc=new TextEncoder(),chunks=[],central=[];let off=0;
+  const u16=n=>[n&255,(n>>8)&255],u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255];
+  files.forEach(f=>{
+    const nm=enc.encode(f.name),data=enc.encode(f.data),crc=crc32(data),sz=data.length;
+    const lh=new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0)]);
+    chunks.push(lh,nm,data);
+    central.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nm);
+    off+=lh.length+nm.length+sz;
+  });
+  let csz=0;central.forEach(c=>{csz+=c.length;});
+  const end=new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(files.length),...u16(files.length),...u32(csz),...u32(off),0,0]);
+  return new Blob([...chunks,...central,end],{type:mime});
+}
+const wx=x=>String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function wP(text,o){
+  o=o||{};const rtl=S.lang==='he',sz=o.sz||21;
+  return `<w:p><w:pPr>${o.line?'<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="888888"/></w:pBdr>':''}${rtl?'<w:bidi/>':''}<w:spacing w:before="${o.before||0}" w:after="${o.after==null?80:o.after}"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>${o.b?'<w:b/><w:bCs/>':''}${o.color?`<w:color w:val="${o.color}"/>`:''}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/>${rtl?'<w:rtl/>':''}</w:rPr><w:t xml:space="preserve">${wx(text)}</w:t></w:r></w:p>`;
+}
+function wTbl(rows,widths,headRow,boldFirstCol){
+  const rtl=S.lang==='he',bd=['top','left','bottom','right','insideH','insideV'].map(k=>`<w:${k} w:val="single" w:sz="4" w:space="0" w:color="BBBBBB"/>`).join('');
+  let h=`<w:tbl><w:tblPr>${rtl?'<w:bidiVisual/>':''}<w:tblW w:w="9000" w:type="dxa"/><w:tblBorders>${bd}</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="40" w:type="dxa"/><w:left w:w="90" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/><w:right w:w="90" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`;
+  rows.forEach((r,ri)=>{
+    const hd=headRow&&ri===0;
+    h+=`<w:tr>${hd?'<w:trPr><w:tblHeader/></w:trPr>':''}${r.map((c,ci)=>`<w:tc><w:tcPr><w:tcW w:w="${widths[ci]}" w:type="dxa"/>${(hd||(boldFirstCol&&ci===0))?'<w:shd w:val="clear" w:color="auto" w:fill="F0F0F0"/>':''}</w:tcPr>${wP(c,{b:hd||(boldFirstCol&&ci===0),after:0})}</w:tc>`).join('')}</w:tr>`;
+  });
+  return h+'</w:tbl>'+wP('',{after:60,sz:8});
+}
+function buildDocx(m){
+  const rtl=S.lang==='he';let b=wP(m.title,{b:true,sz:40,after:40})+wP(m.sub,{color:'555555',after:160});
+  m.blocks.forEach(x=>{
+    if(x.t==='h')b+=wP(x.x,{b:true,sz:26,before:200,after:80,line:true});
+    else if(x.t==='p')b+=wP(x.x,x.c==='note'?{sz:18,color:'555555'}:{});
+    else if(x.t==='kv')b+=wTbl(x.rows,[3200,5800],false,true);
+    else if(x.t==='table'){const n=x.head.length,w=Math.floor(9000/n);b+=wTbl([x.head,...x.rows],x.head.map(()=>w),true,false);}
+  });
+  const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${b}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/>${rtl?'<w:bidi/>':''}</w:sectPr></w:body></w:document>`;
+  const ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>';
+  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+  return zipStore([{name:'[Content_Types].xml',data:ct},{name:'_rels/.rels',data:rels},{name:'word/document.xml',data:doc}],'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+}
+if(window.addEventListener)window.addEventListener('afterprint',()=>{const r=$('report');if(r)r.innerHTML='';document.title=t('title');});
+
+const STATUS_NOTE={preg1:'nPreg1',preg:'nPreg',nurs:'nNurs',nurs2:'nNurs2',post:'nPost',old:'nOld'};
+// Onot to show for the selected period, by special status (sefer ch.23). null = hidden.
+function onotFor(si){
+  const st=S.settings.status;
+  if(st==='preg'||st==='nurs'||st==='post'||st==='old')return null;
+  const on=L.projectOnot(S.periods,si,S.settings);
+  return st==='preg1'?on.filter(o=>/odesh/.test(o.kind)):on;
+}
+
+function buildICS(){
+  const list=sorted(), si=sel(); if(si<0)return '';
+  const p=list[si], s=S.settings, plan=L.purityPlan(p,+s.minDays||5);
+  const ev=[];
+  const disc=s.discreet;
+  ev.push([plan.hefsek,disc?t('evGeneric'):t('evHef')]);
+  ev.push([plan.mikvahEvening,disc?t('evGeneric'):t('evMik')]);
+  (onotFor(si)||[]).forEach(o=>ev.push([L.onahStartCivil(o.date,o.onah),disc?t('evGeneric'):t('evOn')+': '+t(o.kind)]));
+  const ymd=d=>L.toISO(d).replace(/-/g,'');
+  let out='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Niddah Calculator//EN\r\n';
+  ev.forEach((e,i)=>{
+    out+=`BEGIN:VEVENT\r\nUID:niddah-${p.id}-${i}@local\r\nDTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').slice(0,15)}Z\r\nDTSTART;VALUE=DATE:${ymd(e[0])}\r\nDTEND;VALUE=DATE:${ymd(L.addDays(e[0],1))}\r\nSUMMARY:${e[1].replace(/[,;]/g,' ')}\r\nEND:VEVENT\r\n`;
+  });
+  return out+'END:VCALENDAR\r\n';
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act;
+  if(a==='lang'){S.lang=b.dataset.v;save();render();}
+  else if(a==='add'){
+    const d=$('onsetDate').value;if(!d){$('msg').textContent=t('needDate');return;}
+    let v=document.querySelector('input[name=onah]:checked').value;
+    let note='';
+    let dd=d;
+    const tm=$('onsetTime').value;
+    if(tm){
+      const ss=sunsetFor(L.parseISO(d));
+      if(ss){
+        const mins=x=>parseInt(x.slice(0,2),10)*60+parseInt(x.slice(3,5),10);
+        const sr=L.sunriseUTC(d,+S.settings.lat,+S.settings.lon);
+        const dawnLocal=sr?L.fmtTime(new Date(sr.getTime()-(+S.settings.dawnMin||0)*60000),S.settings.tz,'en'):null;
+        if(dawnLocal&&tm<dawnLocal){dd=L.toISO(L.addDays(L.parseISO(d),-1));v='night';note=t('autoPre');}
+        else{
+          const m=mins(tm),s0=mins(ss.local);
+          if(m<s0){v='day';note=t('autoDay');}
+          else if(m<=s0+L.BEIN_MIN){v='bein';note=t('autoBein');}
+          else{v='night';note=t('autoNight');}
+        }
+      }else note=t('noSunset');
+    }
+    const id=String(Date.now());
+    S.periods.push({id,onsetISO:dd,night:v==='night',bein:v==='bein'});S.selected=id;save();render();
+    if(note)$('msg').textContent=note;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  else if(a==='view'){S.selected=b.dataset.id;save();render();window.scrollTo({top:0,behavior:'smooth'});}
+  else if(a==='del'){if(confirm(t('confirmDel'))){S.periods=S.periods.filter(p=>p.id!==b.dataset.id);if(S.selected===b.dataset.id)S.selected=null;save();render();}}
+  else if(a==='hefsek'){const p=S.periods.find(x=>x.id===b.dataset.id);if(p){p.hefsekISO=$('hefsekDate').value||undefined;p.hefsekAfterSunset=$('hefsekAfter').checked;save();render();}}
+  else if(a==='clear'){if(confirm(t('confirmClear'))){S=defaults();save();render();}}
+  else if(a==='gloss'){
+    const id=b.dataset.k;glossOpen[id]=!glossOpen[id];
+    document.querySelectorAll('[data-g="'+id+'"]').forEach(el=>{el.hidden=!glossOpen[id];});
+    document.querySelectorAll('button.q[data-k="'+id+'"]').forEach(el=>el.setAttribute('aria-expanded',glossOpen[id]?'true':'false'));
+  }
+  else if(a==='glossAll'){const g=$('glossBox');if(g){g.open=true;if(g.scrollIntoView)g.scrollIntoView({behavior:'smooth',block:'start'});}}
+  else if(a==='hideGuide'){S.hideGuide=true;save();render();}
+  else if(a==='showGuide'){S.hideGuide=false;save();render();window.scrollTo({top:0,behavior:'smooth'});}
+  else if(a==='locSearch'){doSearch();}
+  else if(a==='locPick'){
+    const r=locResults[+b.dataset.i];if(!r)return;
+    const s=S.settings;s.lat=+r.lat.toFixed(4);s.lon=+r.lon.toFixed(4);
+    let tz=r.tz;
+    try{new Intl.DateTimeFormat('en',{timeZone:tz});}catch(_){try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone;}catch(__){tz='UTC';}}
+    s.tz=tz||'UTC';
+    s.placeName=[r.name,r.admin,r.country].filter(Boolean).join(', ');
+    s.preset='custom';s.locationSet=true;locResults=[];locMsg='';save();render();
+  }
+  else if(a==='gps'){
+    if(!navigator.geolocation){locMsg=t('gpsFail');render();return;}
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const s=S.settings;s.preset='custom';s.lat=+pos.coords.latitude.toFixed(4);s.lon=+pos.coords.longitude.toFixed(4);
+      try{s.tz=Intl.DateTimeFormat().resolvedOptions().timeZone||s.tz;}catch(_){}
+      s.placeName='@gps';s.locationSet=true;locResults=[];locMsg='';save();render();
+    },()=>{locMsg=t('gpsFail');render();});
+  }
+  else if(a==='calPrev'||a==='calNext'){if(!calMonth)return;calMonth.m+=a==='calNext'?1:-1;if(calMonth.m<0){calMonth.m=11;calMonth.y--;}if(calMonth.m>11){calMonth.m=0;calMonth.y++;}calRefresh();}
+  else if(a==='calToday'){let ti;try{ti=new Intl.DateTimeFormat('en-CA',{timeZone:S.settings.tz}).format(new Date());}catch(_){ti=L.toISO(new Date());}const d=L.parseISO(ti);calMonth={y:d.getUTCFullYear(),m:d.getUTCMonth()};calSel=ti;calRefresh();}
+  else if(a==='calDay'){calSel=b.dataset.iso;calRefresh();}
+  else if(a==='repPdf'){
+    const m=reportModel(repShort);if(!m)return;
+    const r=$('report');r.dir=S.lang==='he'?'rtl':'ltr';r.lang=S.lang;r.innerHTML=reportHTML(m);
+    document.title=m.title;window.print();
+  }
+  else if(a==='repDocx'){
+    const m=reportModel(repShort);if(!m)return;
+    const url=URL.createObjectURL(buildDocx(m));
+    const el=document.createElement('a');el.href=url;el.download='niddah-report.docx';document.body.appendChild(el);el.click();el.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  else if(a==='ics'){
+    const txt=buildICS();if(!txt)return;
+    const url=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));
+    const el=document.createElement('a');el.href=url;el.download='reminders.ics';document.body.appendChild(el);el.click();el.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+});
+
+document.addEventListener('change',e=>{
+  const id=e.target.id, s=S.settings;
+  let reopen=true;
+  if(id==='minDays')s.minDays=+e.target.value;
+  else if(id==='inc31')s.include31=e.target.checked;
+  else if(id==='incBoth')s.beinonitBoth=e.target.checked;
+  else if(id==='kt')s.kavuaTimes=Math.max(2,Math.min(5,+e.target.value||3));
+  else if(id==='status')s.status=e.target.value;
+  else if(id==='preset'){const p=PRESETS[e.target.value];reopen=false;if(p){s.lat=p.lat;s.lon=p.lon;s.tz=p.tz;s.placeName='';s.preset=e.target.value;s.locationSet=true;locResults=[];locMsg='';}}
+  else if(id==='lat'||id==='lon'){
+    reopen=false;
+    const la=id==='lat'?parseFloat(e.target.value):+s.lat, lo=id==='lon'?parseFloat(e.target.value):+s.lon;
+    if(!(la>=-90&&la<=90&&lo>=-180&&lo<=180)){locMsg=t('badCoords');save();render();return;}
+    s.lat=la;s.lon=lo;s.preset='custom';s.placeName='';s.locationSet=true;locMsg=t('checkTz').replace('{tz}',s.tz);
+  }
+  else if(id==='tz'){reopen=false;s.tz=e.target.value.trim()||'UTC';s.preset='custom';s.locationSet=true;}
+  else if(id==='tzeit')s.tzeit=+e.target.value||0;
+  else if(id==='dawnMin')s.dawnMin=Math.max(0,+e.target.value||0);
+  else if(id==='discreet'){s.discreet=e.target.checked;save();return;}
+  else if(id==='repShort'){repShort=e.target.checked;return;}
+  else return;
+  // validate tz
+  try{new Intl.DateTimeFormat('en',{timeZone:s.tz});}catch(_){s.tz='UTC';locMsg=t('badTz');}
+  save();render();
+  if(reopen){const det=$('settingsBox');if(det)det.open=true;}
+});
+
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='locQuery')locQueryText=e.target.value;});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='locQuery'){e.preventDefault();doSearch();}});
+document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='coordsBox')locCoordsOpen=e.target.open;},true);
+
 render();
-initCircle();
-initTag();
-initTrip();
+})();
 </script>
 </body>
 </html>
