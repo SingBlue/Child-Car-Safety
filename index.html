@@ -55,7 +55,7 @@ body.alarm{animation:flash .6s infinite alternate}
 <body>
 <div class="wrap">
   <header><h1>Back Seat Check</h1><span id="pill" class="pill">Idle</span></header>
-  <div class="mut" style="font-size:12px;margin:-6px 0 8px">Version 2026-10-26 b</div>
+  <div class="mut" style="font-size:12px;margin:-6px 0 8px">Version 2026-10-26 c</div>
 
   <section class="card">
     <div id="big">Waiting for a trip</div>
@@ -63,6 +63,7 @@ body.alarm{animation:flash .6s infinite alternate}
     <div id="cd" class="mut"></div>
     <div id="actions" class="row"></div>
     <div id="em" class="mut" style="margin-top:8px"></div>
+    <div id="zone" class="mut" style="margin-top:6px;font-size:12px"></div>
   </section>
 
   <section class="card">
@@ -185,7 +186,10 @@ body.alarm{animation:flash .6s infinite alternate}
     <div class="mut">Usual school-run days and time</div>
     <div class="days" id="days"></div>
     <label>From <input type="time" id="from"> To <input type="time" id="to"></label>
-    <label>Temperature <input type="range" id="temp" min="5" max="40"><span id="tempv"></span></label>
+    <label>Temperature (used when the weather service is off) <input type="range" id="temp" min="-10" max="40"><span id="tempv"></span></label>
+    <label>It is sunny (used when the weather service is off) <input type="checkbox" id="wxSun"></label>
+    <label>Use a weather service <input type="checkbox" id="wxOn"></label>
+    <div class="note">Zones are an estimate from the outside temperature, not a measurement of the car. Green: 5 to 15°C, normal timing. Orange: 15 to 25°C, below 5°C (little data on cold), or weather unknown: a bit faster. Red: 25°C and up, or 20°C and up in sun: twice as fast. The service is optional and sends your rounded location to open-meteo.com. If it fails, the app uses orange, never green.</div>
     <label>Your name <input type="text" id="me" placeholder="e.g. Dad" style="width:55%"></label>
     <label>Emergency number <input type="text" id="emNum" placeholder="112" style="width:30%"></label>
     <div class="note">112 in the Netherlands, 100 in Israel. The call button only opens your phone's dialer; a person always presses call.</div>
@@ -205,7 +209,7 @@ function fetchStore(k){ try { return localStorage.getItem(k); } catch (e) { retu
 
 let st = 'idle', t1, t2, t3, d1 = 0, d2 = 0, d3 = 0, ctx, alarmTimer, voiceTimer, vaud = null, caud = null, last = null;
 
-const VER = '2026-10-26 b';
+const VER = '2026-10-26 c';
 let logBuf = [];
 try { logBuf = JSON.parse(fetchStore('bsc_log') || '[]'); if (!Array.isArray(logBuf)) logBuf = []; } catch (e) { logBuf = []; }
 function addLogLi(t, msg){
@@ -321,6 +325,7 @@ function signalDrive(src){
   tagAboard = S.tag && tagPresent;
   log('Driving detected (' + src + ')' + (tagAboard ? ', child tag is with you' : ''));
   startPrompt();
+  fetchWeather();
   render();
 }
 function signalParked(src){
@@ -340,7 +345,8 @@ function signalParked(src){
 }
 function ask(fast){
   st = 'asking';
-  const f = ((S.temp >= 25 ? .5 : 1) * (tripExc ? .5 : 1)) / S.speed, now = Date.now();
+  const zn = zoneNow();
+  const f = (zn.f * (tripExc ? .5 : 1)) / S.speed, now = Date.now();
   const T = fast ? [0, 20000, 60000] : [60000, 120000, 180000];
   d1 = now + T[0] * f; d3 = now + T[1] * f; d2 = now + T[2] * f;
   t1 = setTimeout(stageVoice, T[0] * f);
@@ -349,7 +355,8 @@ function ask(fast){
   if (!fast) playChime();
   grabLocation();
   try { navigator.vibrate && navigator.vibrate(150); } catch (e) {}
-  if (S.temp >= 25) log('Hot (' + S.temp + '°C): escalating twice as fast');
+  log('Zone ' + zn.z.toUpperCase() + ' (' + zn.why + '): ' + (zn.f < 1 ? 'escalating ' + (zn.f === .5 ? 'twice' : 'a bit') + ' as fast' : 'normal timing') + '. This is an estimate, not a measurement.');
+  fetchWeather();
   if (tripExc) log('Exceptional drive: escalating twice as fast');
   log(fast ? 'Child tag left behind: fast escalation' : 'Stage 1: soft chime');
   render();
@@ -358,7 +365,7 @@ function stageVoice(){
   st = 'voice';
   log('No answer. Stage 2: spoken reminder');
   speak(true);
-  const gap = Math.max(5000, 14000 * (S.temp >= 25 ? .5 : 1) / S.speed);
+  const gap = Math.max(5000, 14000 * (zoneNow().f === .5 ? .5 : 1) / S.speed);
   clearInterval(voiceTimer);
   voiceTimer = setInterval(() => speak(false), gap);
   render();
@@ -422,6 +429,7 @@ function render(){
     if (st === 'alerted') add('Text everyone now', 'no', textAll);
     if (st === 'alarm' || st === 'alerted') add('Call emergency services (' + (S.emNum || '112') + ')', 'no', callEmergency);
   }
+  { const z = zoneNow(); $('zone').textContent = 'Heat zone: ' + z.z + ' (' + z.why + '). An estimate, not a measurement.'; }
   $('em').textContent = (st === 'alarm' || st === 'alerted') ? 'If you are not at the car, say this: ' + emergencyScript() : '';
 }
 setInterval(() => {
@@ -535,7 +543,42 @@ $('manual').checked = S.manual; $('manual').onchange = e => { S.manual = e.targe
 $('from').value = S.from; $('from').onchange = e => { S.from = e.target.value; save(); };
 $('to').value = S.to; $('to').onchange = e => { S.to = e.target.value; save(); };
 $('temp').value = S.temp; $('tempv').textContent = S.temp + '°C';
-$('temp').oninput = e => { S.temp = +e.target.value; $('tempv').textContent = S.temp + '°C'; save(); };
+$('temp').oninput = e => { S.temp = +e.target.value; $('tempv').textContent = S.temp + '°C'; save(); render(); };
+$('wxOn').checked = !!S.weather; $('wxOn').onchange = e => { S.weather = e.target.checked; save(); log(S.weather ? 'Weather service on' : 'Weather service off: using the temperature slider'); if (S.weather) fetchWeather(); render(); };
+$('wxSun').checked = !!S.sunMan; $('wxSun').onchange = e => { S.sunMan = e.target.checked; save(); render(); };
+
+// ---------- temperature zones (estimate only) ----------
+let wx = null;
+function wxFresh(){ return wx && Date.now() - wx.ts < 45 * 60000; }
+function zoneNow(){
+  let t = S.temp, sun = !!S.sunMan, src = 'slider';
+  if (S.weather){
+    if (!wxFresh()) return {z:'orange', f:.75, t:S.temp, why:'weather unknown, so orange', sun:false};
+    t = Math.round(wx.t); sun = wx.sun; src = 'weather';
+  }
+  const lab = t + '°C' + (sun ? ', sunny' : '') + ' from ' + src;
+  if (t >= 25 || (t >= 20 && sun)) return {z:'red', f:.5, t, why:lab, sun};
+  if (t >= 15 || t < 5) return {z:'orange', f:.75, t, why:lab + (t < 5 ? ', cold: little data' : ''), sun};
+  return {z:'green', f:1, t, why:lab, sun};
+}
+async function fetchWeather(){
+  if (!S.weather) return;
+  let c = last;
+  try {
+    if (!c && navigator.geolocation) c = await new Promise(res => navigator.geolocation.getCurrentPosition(p => res(p.coords), () => res(null), {timeout:8000, maximumAge:600000}));
+  } catch (e) { c = null; }
+  if (!c){ log('Weather: no location yet, treating as orange'); return; }
+  try {
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + c.latitude.toFixed(2) + '&longitude=' + c.longitude.toFixed(2) + '&current=temperature_2m,cloud_cover,is_day', {signal: ctl.signal});
+    clearTimeout(to);
+    const w = (await r.json()).current;
+    if (!w || typeof w.temperature_2m !== 'number') throw new Error('bad data');
+    wx = {t:w.temperature_2m, sun: w.is_day === 1 && w.cloud_cover < 50, ts:Date.now()};
+    log('Weather: ' + wx.t + '°C' + (wx.sun ? ', sunny' : '') + ' (rounded location sent to open-meteo.com)');
+  } catch (e) { log('Weather lookup failed, treating as orange'); }
+  render();
+}
 $('emNum').value = S.emNum || '112'; $('emNum').oninput = e => { S.emNum = e.target.value.replace(/[^0-9+]/g, '') || '112'; save(); render(); };
 $('me').value = S.me; $('me').oninput = e => { S.me = e.target.value; save(); renderRoles(); };
 
@@ -565,7 +608,7 @@ function emergencyScript(){
   const k = kidNames();
   return 'A child' + (k ? ' (' + k + ')' : '') + ' may be locked in a parked car. '
     + (last ? 'The car is at coordinates ' + last.latitude.toFixed(5) + ', ' + last.longitude.toFixed(5) + '. ' : 'I do not have the exact location yet. ')
-    + 'Temperature ' + S.temp + ' degrees. Please send someone now.';
+    + 'Outside temperature about ' + zoneNow().t + ' degrees. Please send someone now.';
 }
 function callEmergency(){
   log('Emergency call started (' + (S.emNum || '112') + '). Said: ' + emergencyScript());
@@ -575,7 +618,7 @@ function alertText(){
   const url = mapUrl();
   return 'Possible child' + (kidNames() ? ' (' + kidNames() + ')' : '') + ' left in the car. '
     + (actorName() ? actorName() + ' is on duty and has not answered. ' : '')
-    + 'Temp ' + S.temp + '°C. '
+    + 'Outside about ' + zoneNow().t + '°C (' + zoneNow().z + ' zone, estimate). '
     + (url ? 'Car location: ' + url : 'Car location unknown, please call ' + (actorName() || 'the driver') + '.')
     + ' Please check now.';
 }
